@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>내 첫 GitHub Pages</title>
+    <title>은경 다솔, 결혼합니다</title>
 
     <style>
         body {
@@ -49,13 +49,36 @@
         button:hover {
             opacity: 0.8;
         }
+
+        .countdown {
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        
+        #dday {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff7b7b;
+        }
+        
+        #remainTime {
+            margin-top: 10px;
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🎉 GitHub Pages 성공!</h1>
+    <h1>🎉 우리의 결혼을 축하해 🎉</h1>
     <p>블로그가 정상적으로 배포되었습니다.</p>
+
+    <div class="countdown">
+        <div id="dday">D-000</div>
+        <div id="remainTime"></div>
+    </div>
 
     <button onclick="showMessage()">
         클릭해보세요
@@ -64,8 +87,36 @@
 
 <script>
     function showMessage() {
-        alert("JavaScript도 정상적으로 동작합니다!");
+        alert("은경아 사랑해💕");
     }
+
+     const targetDate = new Date("2027-05-01T10:30:00");
+
+    function updateCountdown() {
+        const now = new Date();
+        const diff = targetDate - now;
+
+        if (diff <= 0) {
+            document.getElementById("dday").innerText = "D-DAY 🎉";
+            document.getElementById("remainTime").innerText =
+                "2027년 5월 1일 오전 10시 30분이 되었습니다.";
+            return;
+        }
+
+        const totalSeconds = Math.floor(diff / 1000);
+
+        const days = Math.floor(totalSeconds / (60 * 60 * 24));
+        const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+        const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+        const seconds = totalSeconds % 60;
+
+        document.getElementById("dday").innerText = `D-${days}`;
+        document.getElementById("remainTime").innerText =
+            `${days}일 ${hours}시간 ${minutes}분 ${seconds}초 남았습니다`;
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
 </script>
 
 </body>
