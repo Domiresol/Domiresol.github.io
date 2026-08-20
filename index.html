@@ -368,6 +368,75 @@
     .lightbox .prev { left: 4px; top: 50%; transform: translateY(-50%); }
     .lightbox .next { right: 4px; top: 50%; transform: translateY(-50%); }
 
+    /* ---------- 사진 업로드 ---------- */
+    .upload-btn {
+        display: inline-block;
+        padding: 14px 32px;
+        background: #ff9a8b;
+        color: #fff;
+        border: none;
+        border-radius: 30px;
+        font-size: 0.95rem;
+        cursor: pointer;
+    }
+
+    .upload-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 1002;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .upload-modal.open { display: flex; }
+
+    .upload-box {
+        background: #fff;
+        border-radius: 14px;
+        padding: 28px 22px;
+        width: 100%;
+        max-width: 320px;
+        text-align: center;
+    }
+
+    .upload-box h3 { font-size: 1.05rem; margin-bottom: 16px; }
+
+    .upload-box input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+        box-sizing: border-box;
+    }
+
+    .upload-box input[type="file"] {
+        width: 100%;
+        margin-bottom: 16px;
+        font-size: 0.8rem;
+    }
+
+    .upload-actions { display: flex; gap: 8px; }
+
+    .upload-actions button {
+        flex: 1;
+        padding: 12px 0;
+        border-radius: 8px;
+        border: none;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .upload-cancel { background: #f0f0f0; color: #666; }
+    .upload-submit { background: #ff9a8b; color: #fff; }
+    .upload-submit:disabled { opacity: 0.5; }
+
+    .upload-status { margin-top: 12px; font-size: 0.8rem; color: #888; min-height: 18px; }
+
     /* ---------- 마음 전하는 곳 ---------- */
     .account-block { max-width: 320px; margin: 0 auto; }
 
@@ -603,6 +672,13 @@
         <div class="gallery-grid" id="galleryGrid"></div>
     </section>
 
+    <!-- 5.5 사진 업로드 -->
+    <section class="photo-upload">
+        <h2>사진 업로드</h2>
+        <p class="rsvp-note">함께한 순간을 담은 사진이 있다면<br>이 곳에 나눠주세요.<br>본인의 이름을 입력하시면 그 이름으로<br>폴더가 자동으로 만들어져요.</p>
+        <button class="upload-btn" onclick="openUploadModal()">사진 업로드하기</button>
+    </section>
+
     <!-- 6. 마음 전하는 곳 -->
     <section class="account">
         <h2>마음 전하는 곳</h2>
@@ -661,7 +737,21 @@
     </section>
 
     <img src="images/main/footer01.jpg" alt="" style="width: 100%; max-width: 480px; display: block; margin: 0 auto 20px;">
-    <footer>다솔 &amp; 은경의 결혼식에<br>함께해 주셔서 감사합니다.</footer>
+    <footer>잘 살겠습니다!<br>귀한 시간 내주시고 축하해주셔서 감사합니다.<br>베풀어주신 것에 늘 감사하며 살겠습니다!</footer>
+</div>
+
+<!-- 사진 업로드 모달 -->
+<div class="upload-modal" id="uploadModal">
+    <div class="upload-box">
+        <h3>사진 업로드</h3>
+        <input type="text" id="uploadName" placeholder="이름을 입력해주세요" maxlength="30">
+        <input type="file" id="uploadFiles" accept="image/*" multiple>
+        <div class="upload-actions">
+            <button class="upload-cancel" onclick="closeUploadModal()">취소</button>
+            <button class="upload-submit" id="uploadSubmitBtn" onclick="submitUpload()">업로드</button>
+        </div>
+        <div class="upload-status" id="uploadStatus"></div>
+    </div>
 </div>
 
 <!-- 라이트박스 -->
@@ -866,6 +956,66 @@
     function copyAccount(text) {
         navigator.clipboard.writeText(text);
         alert('계좌번호가 복사되었습니다.');
+    }
+
+    // ---------- 사진 업로드 ----------
+    const UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbzmhk4scxIM-OvCOGkkgWR5wxU_M80N6guccwqg4ZrK4PaCo9vGDyyiSD8lQL0az8wV/exec';
+
+    function openUploadModal() {
+        document.getElementById('uploadModal').classList.add('open');
+    }
+    function closeUploadModal() {
+        document.getElementById('uploadModal').classList.remove('open');
+        document.getElementById('uploadStatus').textContent = '';
+    }
+
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function submitUpload() {
+        const name = document.getElementById('uploadName').value.trim();
+        const fileInput = document.getElementById('uploadFiles');
+        const status = document.getElementById('uploadStatus');
+        const submitBtn = document.getElementById('uploadSubmitBtn');
+
+        if (!name) { status.textContent = '이름을 입력해주세요.'; return; }
+        if (!fileInput.files.length) { status.textContent = '사진을 선택해주세요.'; return; }
+
+        submitBtn.disabled = true;
+        status.textContent = '업로드 중...';
+
+        try {
+            const files = await Promise.all(Array.from(fileInput.files).map(async f => ({
+                filename: f.name,
+                mimeType: f.type,
+                data: await fileToBase64(f)
+            })));
+
+            const res = await fetch(UPLOAD_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ name, files })
+            });
+            const result = await res.json();
+
+            if (result.ok) {
+                status.textContent = `업로드 완료! (${result.count}장)`;
+                fileInput.value = '';
+                setTimeout(closeUploadModal, 1500);
+            } else {
+                status.textContent = result.error || '업로드 실패';
+            }
+        } catch (err) {
+            status.textContent = '업로드 중 오류가 발생했습니다.';
+        } finally {
+            submitBtn.disabled = false;
+        }
     }
 
     // ---------- BGM ----------
