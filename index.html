@@ -291,11 +291,19 @@
     .couple-info {
         background: #eef3f5;
         padding: 40px 24px;
+        font-size: 1.2rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
     .couple-row {
         display: flex;
+        align-items: center;
         justify-content: space-between;
+        width: 100%;
         max-width: 300px;
         margin: 0 auto;
         padding: 10px 0;
@@ -303,7 +311,7 @@
         color: #444;
     }
 
-    .couple-row .role { color: #888; }
+    .couple-row .role { color: #888; font-weight: 700; }
 
     .inline-flower {
         height: 1em;
@@ -453,8 +461,8 @@
     footer {
         padding: 40px 24px 80px;
         text-align: center;
-        font-size: 0.8rem;
-        color: #bbb;
+        font-size: 1.2rem;
+        color: #202020;
     }
 
     /* ---------- 스크롤 페이드인 ---------- */
@@ -585,8 +593,8 @@
 
     <!-- 4. 결혼 정보 -->
     <section class="couple-info">
-        <div class="couple-row"><span>김관용 · 윤영주 의</span><span class="role">아들</span><span>다솔</span></div>
-        <div class="couple-row"><span>정병렬 · <img class="inline-flower" src="images/src/flower99.png" alt="">최윤심 의</span><span class="role">딸</span><span>은경</span></div>
+        <div class="couple-row"><span>김관용 · 윤영주 의</span><span class="role">아들</span><span style="font-weight: 700; font-size: 1.3rem;">다솔</span></div>
+        <div class="couple-row"><span>정병렬 · <img class="inline-flower" src="images/src/flower99.png" alt="">최윤심 의</span><span class="role">딸</span><span style="font-weight: 700; font-size: 1.3rem;">은경</span></div>
     </section>
 
     <!-- 5. 갤러리 -->
@@ -602,24 +610,26 @@
             <button class="account-toggle" onclick="toggleAccount('groom')">신랑측 계좌번호 보기 ▾</button>
             <div class="account-detail" id="acc-groom">
                 <div class="account-row">
-                    <span>다솔 [은행명] [계좌번호]</span>
-                    <button class="copy-btn" onclick="copyAccount('[은행명] [계좌번호]')">복사</button>
+                    <span>김다솔 국민 941602-00-058236</span>
+                    <button class="copy-btn" onclick="copyAccount('국민 941602-00-058236')">복사</button>
                 </div>
                 <div class="account-row">
-                    <span>[아버님/어머님] [은행명] [계좌번호]</span>
-                    <button class="copy-btn" onclick="copyAccount('[은행명] [계좌번호]')">복사</button>
+                    <span>김관용 국민 [계좌번호]</span>
+                    <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
+                    <span>윤영주 국민 [계좌번호]</span>
+                    <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
                 </div>
             </div>
 
             <button class="account-toggle" onclick="toggleAccount('bride')">신부측 계좌번호 보기 ▾</button>
             <div class="account-detail" id="acc-bride">
                 <div class="account-row">
-                    <span>은경 [은행명] [계좌번호]</span>
-                    <button class="copy-btn" onclick="copyAccount('[은행명] [계좌번호]')">복사</button>
+                    <span>정은경 국민 [계좌번호]</span>
+                    <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
                 </div>
                 <div class="account-row">
-                    <span>[아버님] [은행명] [계좌번호]</span>
-                    <button class="copy-btn" onclick="copyAccount('[은행명] [계좌번호]')">복사</button>
+                    <span>정병렬 국민 [계좌번호]</span>
+                    <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
                 </div>
             </div>
         </div>
@@ -650,7 +660,8 @@
         </div>
     </section>
 
-    <footer>다솔 &amp; 은경의 결혼식에 함께해 주셔서 감사합니다.</footer>
+    <img src="images/main/footer01.jpg" alt="" style="width: 100%; max-width: 480px; display: block; margin: 0 auto 20px;">
+    <footer>다솔 &amp; 은경의 결혼식에<br>함께해 주셔서 감사합니다.</footer>
 </div>
 
 <!-- 라이트박스 -->
