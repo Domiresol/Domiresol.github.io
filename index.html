@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>다솔 은경, 결혼합니다</title>
+<meta property="og:title" content="다솔 은경, 결혼합니다">
+<meta property="og:description" content="2027년 5월 1일 토요일, 저희 두 사람이 하나가 됩니다.">
+<meta property="og:image" content="https://domiresol.github.io/images/main/main02.jpg">
+<meta property="og:url" content="https://domiresol.github.io/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Meddon&family=Nanum+Pen+Script&family=Gowun+Batang&family=Noto+Sans+KR:wght@700&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
@@ -675,7 +679,7 @@
     <!-- 5.5 사진 업로드 -->
     <section class="photo-upload">
         <h2>사진 업로드</h2>
-        <p class="rsvp-note">함께한 순간을 담은 사진이 있다면<br>이 곳에 나눠주세요.<br>본인의 이름을 입력하시면 그 이름으로<br>폴더가 자동으로 만들어져요.</p>
+        <p class="rsvp-note">함께한 순간을 담은 사진이 있다면<br>이 곳에 나눠주세요.<br>본인의 이름을 입력하시면 그 이름으로<br>폴더가 자동으로 만들어져요.<br>(한 번에 최대 20장까지 업로드 가능)</p>
         <button class="upload-btn" onclick="openUploadModal()">사진 업로드하기</button>
     </section>
 
@@ -746,10 +750,11 @@
         <h3>사진 업로드</h3>
         <input type="text" id="uploadName" placeholder="이름을 입력해주세요" maxlength="30">
         <input type="file" id="uploadFiles" accept="image/*" multiple>
-        <div class="upload-actions">
+        <div class="upload-actions" id="uploadActions">
             <button class="upload-cancel" onclick="closeUploadModal()">취소</button>
             <button class="upload-submit" id="uploadSubmitBtn" onclick="submitUpload()">업로드</button>
         </div>
+        <button class="upload-submit" id="uploadConfirmBtn" style="display:none; width:100%; padding:12px 0;" onclick="closeUploadModal()">확인</button>
         <div class="upload-status" id="uploadStatus"></div>
     </div>
 </div>
@@ -960,6 +965,7 @@
 
     // ---------- 사진 업로드 ----------
     const UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbzmhk4scxIM-OvCOGkkgWR5wxU_M80N6guccwqg4ZrK4PaCo9vGDyyiSD8lQL0az8wV/exec';
+    const MAX_UPLOAD_FILES = 20;
 
     function openUploadModal() {
         document.getElementById('uploadModal').classList.add('open');
@@ -967,6 +973,11 @@
     function closeUploadModal() {
         document.getElementById('uploadModal').classList.remove('open');
         document.getElementById('uploadStatus').textContent = '';
+        document.getElementById('uploadName').value = '';
+        document.getElementById('uploadName').style.display = '';
+        document.getElementById('uploadFiles').style.display = '';
+        document.getElementById('uploadActions').style.display = 'flex';
+        document.getElementById('uploadConfirmBtn').style.display = 'none';
     }
 
     function fileToBase64(file) {
@@ -986,6 +997,10 @@
 
         if (!name) { status.textContent = '이름을 입력해주세요.'; return; }
         if (!fileInput.files.length) { status.textContent = '사진을 선택해주세요.'; return; }
+        if (fileInput.files.length > MAX_UPLOAD_FILES) {
+            status.textContent = `한 번에 최대 ${MAX_UPLOAD_FILES}장까지 업로드할 수 있어요.`;
+            return;
+        }
 
         submitBtn.disabled = true;
         status.textContent = '업로드 중...';
@@ -1007,7 +1022,10 @@
             if (result.ok) {
                 status.textContent = `업로드 완료! (${result.count}장)`;
                 fileInput.value = '';
-                setTimeout(closeUploadModal, 1500);
+                document.getElementById('uploadName').style.display = 'none';
+                document.getElementById('uploadFiles').style.display = 'none';
+                document.getElementById('uploadActions').style.display = 'none';
+                document.getElementById('uploadConfirmBtn').style.display = 'block';
             } else {
                 status.textContent = result.error || '업로드 실패';
             }
@@ -1025,6 +1043,17 @@
         if (bgmPlaying) { bgm.pause(); } else { bgm.play().catch(() => {}); }
         bgmPlaying = !bgmPlaying;
     }
+
+    // 브라우저 자동재생 정책 때문에 즉시 재생이 막히면, 첫 터치/클릭에 재생
+    bgm.play().then(() => { bgmPlaying = true; }).catch(() => {
+        const startOnInteract = () => {
+            bgm.play().then(() => { bgmPlaying = true; }).catch(() => {});
+            document.removeEventListener('click', startOnInteract);
+            document.removeEventListener('touchstart', startOnInteract);
+        };
+        document.addEventListener('click', startOnInteract);
+        document.addEventListener('touchstart', startOnInteract);
+    });
 </script>
 
 </body>
