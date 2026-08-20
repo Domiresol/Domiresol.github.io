@@ -187,6 +187,10 @@
     }
 
     /* ---------- 서브 사진 ---------- */
+    .photo-upload {
+        background: #fff7f3;
+    }
+
     .sub-photo img {
         width: 100%;
         display: block;
@@ -442,6 +446,8 @@
     .upload-status { margin-top: 12px; font-size: 0.8rem; color: #888; min-height: 18px; }
 
     /* ---------- 마음 전하는 곳 ---------- */
+    .account { background-color: #ffe9f1; }
+
     .account-block { max-width: 320px; margin: 0 auto; }
 
     .account-toggle {
@@ -481,25 +487,7 @@
         cursor: pointer;
         color: #666;
     }
-
-    /* ---------- RSVP ---------- */
-    .rsvp-note {
-        font-size: 0.85rem;
-        color: #888;
-        margin-bottom: 20px;
-        line-height: 1.6;
-    }
-
-    .rsvp-btn {
-        display: inline-block;
-        padding: 14px 32px;
-        background: #ff9a8b;
-        color: #fff;
-        border-radius: 30px;
-        text-decoration: none;
-        font-size: 0.95rem;
-    }
-
+    
     /* ---------- 오시는길 ---------- */
     .map-box {
         width: 100%;
@@ -507,15 +495,15 @@
         margin-bottom: 16px;
         background: #fff;
     }
-
+    
     .map-box img {
         width: 100%;
         display: block;
         border-radius: 10px;
     }
-
+    
     .map-links { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
-
+    
     .map-links a {
         flex: 1;
         max-width: 140px;
@@ -530,7 +518,7 @@
     .address { font-size: 0.85rem; color: #666; margin-bottom: 4px; }
     .transit { font-size: 0.8rem; color: #999; text-align: left; line-height: 1.8; margin-top: 20px; }
     .transit b { color: #666; }
-
+    
     footer {
         padding: 40px 24px 80px;
         text-align: center;
@@ -538,8 +526,30 @@
         color: #202020;
     }
 
+    /* ---------- 감사인사 ---------- */
+    .thanks {
+        font-size: 1rem;
+        background-color: #f2ffe9;
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+
+    .thanks-note {
+        font-size: 1rem;
+        color: #1b1b1b;
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+
+    .rsvp-note {
+        font-size: 1rem;
+        color: #1b1b1b;
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+
     /* ---------- 스크롤 페이드인 ---------- */
-    section, footer {
+    section, footer, .reveal {
         opacity: 0;
         transform: translateY(30px);
         transition: opacity 0.8s ease, transform 0.8s ease;
@@ -579,8 +589,8 @@
 
     @keyframes petal-fall {
         0%   { transform: translate(0, 0); }
-        50%  { transform: translate(calc(var(--sway, 1) * 30px), 50vh); }
-        100% { transform: translate(calc(var(--sway, 1) * -10px), 105vh); }
+        50%  { transform: translate(calc(var(--sway, 1) * 70px), 50vh); }
+        100% { transform: translate(calc(var(--sway, 1) * -25px), 105vh); }
     }
 
     @keyframes petal-spin {
@@ -639,11 +649,11 @@
 
 따스한 5월의 첫 날
 소중한 분들을 초대합니다.</p>
+        <div class="sub-photo">
+            <img src="images/main/main02.jpg" alt="">
+        </div>
     </section>
 
-    <div class="sub-photo">
-        <img src="images/main/main02.jpg" alt="">
-    </div>
 
     <!-- 3. 카운트다운 -->
     <section class="countdown-section">
@@ -696,6 +706,8 @@
                 <div class="account-row">
                     <span>김관용 국민 [계좌번호]</span>
                     <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
+                </div>
+                <div class="account-row">
                     <span>윤영주 국민 [계좌번호]</span>
                     <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
                 </div>
@@ -740,8 +752,11 @@
         </div>
     </section>
 
-    <img src="images/main/footer01.jpg" alt="" style="width: 100%; max-width: 480px; display: block; margin: 0 auto 20px;">
-    <footer>잘 살겠습니다!<br>귀한 시간 내주시고 축하해주셔서 감사합니다.<br>베풀어주신 것에 늘 감사하며 살겠습니다!</footer>
+    <section class="thanks">
+        <h2>THANK YOU</h2>
+        <img src="images/main/footer01.jpg" alt="" style="width: 100%; max-width: 480px; display: block; margin: 0 auto 20px;">
+        <p class="thanks-note">잘 살겠습니다!<br>귀한 시간 내주시고 축하해주셔서 감사합니다.<br>베풀어주신 것에 늘 감사하며 살겠습니다💕</p>
+    </section>
 </div>
 
 <!-- 사진 업로드 모달 -->
@@ -815,12 +830,23 @@
                 revealObserver.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.15 });
+    }, { rootMargin: '0px 0px -40% 0px' });
 
-    document.querySelectorAll('section, footer').forEach(el => revealObserver.observe(el));
+    document.querySelectorAll('section, .reveal').forEach(el => revealObserver.observe(el));
+
+    // footer는 페이지 맨 끝이라 -40% 지점까지 스크롤할 여백이 없어서 위 observer로는 안 뜸
+    const footerObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+                footerObserver.unobserve(entry.target);
+            }
+        });
+    });
+    document.querySelectorAll('footer').forEach(el => footerObserver.observe(el));
 
     // ---------- 벚꽃 ----------
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < 18; i++) {
         const petal = document.createElement('div');
         petal.className = 'petal';
         const size = 8 + Math.random() * 8;
@@ -829,7 +855,7 @@
         petal.style.left = Math.random() * 100 + '%';
         petal.style.opacity = 0.6 + Math.random() * 0.4;
         petal.style.animationDuration = 8 + Math.random() * 8 + 's';
-        petal.style.animationDelay = -(Math.random() * 15) + 's';
+        petal.style.animationDelay = Math.random() * 10 + 's';
         petal.style.setProperty('--sway', Math.random() < 0.5 ? 1 : -1);
 
         const inner = document.createElement('div');
