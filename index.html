@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>다솔 은경, 결혼합니다</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💗</text></svg>">
 <meta property="og:title" content="다솔 은경, 결혼합니다">
 <meta property="og:description" content="2027년 5월 1일 토요일, 저희 두 사람이 하나가 됩니다.">
 <meta property="og:image" content="https://domiresol.github.io/images/main/main02.jpg">
@@ -58,19 +59,21 @@
     }
 
     .intro-text {
-        font-family: 'Meddon', cursive;
-        fill: none;
+        font-family: 'Nanum Pen Script', cursive;
+        fill: #ffb7ce;
+        fill-opacity: 0;
         stroke: #ffb7ce;
+        stroke-opacity: 1;
         stroke-width: 1.2;
         stroke-dasharray: 1000;
         stroke-dashoffset: 1000;
-        transition: stroke-dashoffset 1.6s ease, fill 0.5s ease;
+        transition: stroke-dashoffset 1.6s ease, fill-opacity 0.5s ease, stroke-opacity 0.5s ease;
         margin-top: 20px;
     }
 
-    .intro-text.filled { fill: #ffb7ce; stroke: none; }
+    .intro-text.filled { fill-opacity: 1; stroke-opacity: 0; }
 
-    #introLine1 { font-size: 42px; }
+    #introLine1 { font-size: 54px; }
     #introLine2 { font-size: 54px; }
 
     .card {
@@ -620,8 +623,8 @@
 
 <div class="intro-splash" id="introSplash">
     <svg class="intro-svg" viewBox="0 0 400 200">
-        <text class="intro-text" id="introLine1" x="200" y="80" text-anchor="middle">We are Getting</text>
-        <text class="intro-text" id="introLine2" x="200" y="150" text-anchor="middle">Married!</text>
+        <text class="intro-text" id="introLine1" x="200" y="80" text-anchor="middle">다솔 은경</text>
+        <text class="intro-text" id="introLine2" x="200" y="150" text-anchor="middle">결혼합니다!</text>
     </svg>
 </div>
 
@@ -689,7 +692,7 @@
     <!-- 5.5 사진 업로드 -->
     <section class="photo-upload">
         <h2>사진 업로드</h2>
-        <p class="rsvp-note">함께한 순간을 담은 사진이 있다면<br>이 곳에 나눠주세요.<br>본인의 이름을 입력하시면 그 이름으로<br>폴더가 자동으로 만들어져요.<br>(한 번에 최대 20장까지 업로드 가능)</p>
+        <p class="rsvp-note">함께한 순간을 담은 사진이 있다면<br>이 곳에 나눠주세요.<br>본인의 이름을 입력하시면 그 이름으로<br>폴더가 자동으로 만들어져요.<br>(이미지 파일만 업로드 가능해요)</p>
         <button class="upload-btn" onclick="openUploadModal()">사진 업로드하기</button>
     </section>
 
@@ -991,7 +994,14 @@
 
     // ---------- 사진 업로드 ----------
     const UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbzmhk4scxIM-OvCOGkkgWR5wxU_M80N6guccwqg4ZrK4PaCo9vGDyyiSD8lQL0az8wV/exec';
-    const MAX_UPLOAD_FILES = 20;
+    const BLOCKED_VIDEO_EXT = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.3gp', '.wmv', '.flv', '.m4v'];
+
+    function isVideoFile(file) {
+        if (file.type && file.type.startsWith('video/')) return true;
+        const lower = file.name.toLowerCase();
+        return BLOCKED_VIDEO_EXT.some(ext => lower.endsWith(ext));
+    }
+    const BATCH_MB = 8;
 
     function openUploadModal() {
         document.getElementById('uploadModal').classList.add('open');
@@ -1023,40 +1033,64 @@
 
         if (!name) { status.textContent = '이름을 입력해주세요.'; return; }
         if (!fileInput.files.length) { status.textContent = '사진을 선택해주세요.'; return; }
-        if (fileInput.files.length > MAX_UPLOAD_FILES) {
-            status.textContent = `한 번에 최대 ${MAX_UPLOAD_FILES}장까지 업로드할 수 있어요.`;
+        const videoFiles = Array.from(fileInput.files).filter(isVideoFile);
+        if (videoFiles.length) {
+            status.textContent = `영상은 업로드할 수 없어요: ${videoFiles.map(f => f.name).join(', ')}`;
             return;
         }
 
-        submitBtn.disabled = true;
-        status.textContent = '업로드 중...';
-
-        try {
-            const files = await Promise.all(Array.from(fileInput.files).map(async f => ({
-                filename: f.name,
-                mimeType: f.type,
-                data: await fileToBase64(f)
-            })));
-
-            const res = await fetch(UPLOAD_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ name, files })
-            });
-            const result = await res.json();
-
-            if (result.ok) {
-                status.textContent = `업로드 완료! (${result.count}장)`;
-                fileInput.value = '';
-                document.getElementById('uploadName').style.display = 'none';
-                document.getElementById('uploadFiles').style.display = 'none';
-                document.getElementById('uploadActions').style.display = 'none';
-                document.getElementById('uploadConfirmBtn').style.display = 'block';
-            } else {
-                status.textContent = result.error || '업로드 실패';
+        // 용량이 크면 여러 배치로 나눠서 순차 전송 (같은 폴더에 이어서 저장됨)
+        const batches = [];
+        let current = [];
+        let currentBytes = 0;
+        const batchLimit = BATCH_MB * 1024 * 1024;
+        for (const f of fileInput.files) {
+            if (current.length && currentBytes + f.size > batchLimit) {
+                batches.push(current);
+                current = [];
+                currentBytes = 0;
             }
+            current.push(f);
+            currentBytes += f.size;
+        }
+        if (current.length) batches.push(current);
+
+        submitBtn.disabled = true;
+
+        let folderId = null;
+        let uploadedCount = 0;
+        try {
+            for (let i = 0; i < batches.length; i++) {
+                status.textContent = batches.length > 1
+                    ? `업로드 중... (${i + 1}/${batches.length})`
+                    : '업로드 중...';
+
+                const files = await Promise.all(batches[i].map(async f => ({
+                    filename: f.name,
+                    mimeType: f.type,
+                    data: await fileToBase64(f)
+                })));
+
+                const res = await fetch(UPLOAD_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ name, folderId, files })
+                });
+                const result = await res.json();
+                if (!result.ok) throw new Error(result.error || '업로드 실패');
+
+                folderId = result.folderId;
+                uploadedCount += result.count;
+            }
+
+            status.textContent = `업로드 완료! (${uploadedCount}장)`;
+            fileInput.value = '';
+            document.getElementById('uploadName').style.display = 'none';
+            document.getElementById('uploadFiles').style.display = 'none';
+            document.getElementById('uploadActions').style.display = 'none';
+            document.getElementById('uploadConfirmBtn').style.display = 'block';
         } catch (err) {
-            status.textContent = '업로드 중 오류가 발생했습니다.';
+            status.textContent = err.message || '업로드 중 오류가 발생했습니다.';
         } finally {
             submitBtn.disabled = false;
         }
