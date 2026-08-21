@@ -448,6 +448,22 @@
 
     .upload-status { margin-top: 12px; font-size: 0.8rem; color: #888; min-height: 18px; }
 
+    .upload-progress {
+        width: 100%;
+        height: 6px;
+        background: #f0e0da;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 14px;
+    }
+
+    .upload-progress-bar {
+        height: 100%;
+        width: 0%;
+        background: #ff9a8b;
+        transition: width 0.3s ease;
+    }
+
     /* ---------- 마음 전하는 곳 ---------- */
     .account { background-color: #ffe9f1; }
 
@@ -773,6 +789,9 @@
             <button class="upload-submit" id="uploadSubmitBtn" onclick="submitUpload()">업로드</button>
         </div>
         <button class="upload-submit" id="uploadConfirmBtn" style="display:none; width:100%; padding:12px 0;" onclick="closeUploadModal()">확인</button>
+        <div class="upload-progress" id="uploadProgress" style="display:none;">
+            <div class="upload-progress-bar" id="uploadProgressBar"></div>
+        </div>
         <div class="upload-status" id="uploadStatus"></div>
     </div>
 </div>
@@ -1014,6 +1033,8 @@
         document.getElementById('uploadFiles').style.display = '';
         document.getElementById('uploadActions').style.display = 'flex';
         document.getElementById('uploadConfirmBtn').style.display = 'none';
+        document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('uploadProgressBar').style.width = '0%';
     }
 
     function fileToBase64(file) {
@@ -1055,15 +1076,19 @@
         }
         if (current.length) batches.push(current);
 
+        const totalFiles = fileInput.files.length;
+        const progressWrap = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('uploadProgressBar');
+        progressWrap.style.display = 'block';
+        progressBar.style.width = '0%';
+
         submitBtn.disabled = true;
 
         let folderId = null;
         let uploadedCount = 0;
         try {
             for (let i = 0; i < batches.length; i++) {
-                status.textContent = batches.length > 1
-                    ? `업로드 중... (${i + 1}/${batches.length})`
-                    : '업로드 중...';
+                status.textContent = `업로드 중... (${uploadedCount}/${totalFiles}장)`;
 
                 const files = await Promise.all(batches[i].map(async f => ({
                     filename: f.name,
@@ -1081,6 +1106,8 @@
 
                 folderId = result.folderId;
                 uploadedCount += result.count;
+                progressBar.style.width = Math.round(uploadedCount / totalFiles * 100) + '%';
+                status.textContent = `업로드 중... (${uploadedCount}/${totalFiles}장)`;
             }
 
             status.textContent = `업로드 완료! (${uploadedCount}장)`;
