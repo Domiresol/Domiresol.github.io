@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>다솔 은경, 결혼합니다</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💗</text></svg>">
+<meta property="og:title" content="다솔 은경, 결혼합니다">
+<meta property="og:description" content="2027년 5월 1일 토요일, 저희 두 사람이 하나가 됩니다.">
+<meta property="og:image" content="https://domiresol.github.io/wedding/images/main/main02.jpg">
+<meta property="og:url" content="https://domiresol.github.io/wedding/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Meddon&family=Nanum+Pen+Script&family=Gowun+Batang&family=Noto+Sans+KR:wght@700&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+
+<style>
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        font-family: 'Gowun Batang', 'Malgun Gothic', 'Apple SD Gothic Neo', serif;
+        background: #fff7f3;
+        color: #4a4a4a;
+    }
+
+    body.intro-lock {
+        overflow: hidden;
+        height: 100vh;
+    }
+
+    /* ---------- 인트로 스플래시 ---------- */
+    .intro-splash {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 480px;
+        z-index: 999;
+        background: #000;
+        opacity: 0.8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 1s ease;
+    }
+
+    body.intro-done .intro-splash {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .intro-svg {
+        width: 320px;
+        max-width: 85vw;
+        height: auto;
+        overflow: visible;
+    }
+
+    .intro-text {
+        font-family: 'Nanum Pen Script', cursive;
+        fill: #ffb7ce;
+        fill-opacity: 0;
+        stroke: #ffb7ce;
+        stroke-opacity: 1;
+        stroke-width: 1.2;
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+        transition: stroke-dashoffset 1.6s ease, fill-opacity 0.5s ease, stroke-opacity 0.5s ease;
+        margin-top: 20px;
+    }
+
+    .intro-text.filled { fill-opacity: 1; stroke-opacity: 0; }
+
+    #introLine1 { font-size: 54px; }
+    #introLine2 { font-size: 54px; }
+
+    .card {
+        max-width: 480px;
+        margin: 0 auto;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    section {
+        padding: 60px 24px;
+        text-align: center;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 30px;
+        color: #333;
+        letter-spacing: 1px;
+    }
+
+    /* ---------- Hero ---------- */
+    .hero {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        max-height: 780px;
+        overflow: hidden;
+        padding: 0;
+    }
+
+    .hero-slide {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        opacity: 0;
+        transition: opacity 1.5s ease-in-out;
+    }
+
+    .hero-slide.active { opacity: 1; }
+
+    .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%);
+    }
+
+    .hero-text {
+        position: absolute;
+        left: 0; right: 0; bottom: 60px;
+        z-index: 2;
+        color: #fff;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .hero-text .names {
+        font-size: 1.8rem;
+        letter-spacing: 3px;
+        margin-bottom: 10px;
+    }
+
+    .hero-text .date {
+        font-size: 1rem;
+        letter-spacing: 1px;
+        opacity: 0.9;
+    }
+
+    .scroll-cue {
+        position: absolute;
+        bottom: 16px; left: 50%;
+        transform: translateX(-50%);
+        z-index: 2;
+        color: #fff;
+        font-size: 0.75rem;
+        opacity: 0.8;
+        animation: bob 1.8s infinite;
+    }
+
+    @keyframes bob {
+        0%, 100% { transform: translate(-50%, 0); }
+        50% { transform: translate(-50%, 6px); }
+    }
+
+    /* ---------- 인사말 ---------- */
+    .verse {
+        font-family: 'Nanum Myeongjo', serif;
+        font-weight: 600;
+        font-size: 1rem;
+        line-height: 1.7;
+        color: #000;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .verse + .verse-ref {
+        margin-top: 10px;
+    }
+
+    .verse-ref {
+        font-size: 0.75rem;
+        color: #1b1b1b;
+        letter-spacing: 1px;
+        margin: 0 0 30px;
+    }
+
+    .greeting p {
+        line-height: 2;
+        font-size: 0.95rem;
+        color: #555;
+        white-space: pre-line;
+    }
+
+    /* ---------- 서브 사진 ---------- */
+    .photo-upload {
+        background: #fff7f3;
+    }
+
+    .sub-photo img {
+        width: 100%;
+        display: block;
+    }
+
+    /* ---------- Countdown ---------- */
+    .countdown-section { background: #fff7f3; }
+
+    .wedding-date-kr {
+        font-size: 0.95rem;
+        color: #333;
+        margin-bottom: 4px;
+    }
+
+    .wedding-date-en {
+        font-size: 0.75rem;
+        color: #aaa;
+        margin-bottom: 8px;
+    }
+
+    .wedding-venue {
+        font-size: 0.85rem;
+        color: #888;
+        margin-bottom: 28px;
+    }
+
+    .calendar {
+        max-width: 260px;
+        margin: 0 auto 28px;
+    }
+
+    .calendar-row {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+    }
+
+    .calendar-head span {
+        display: block;
+        font-size: 0.7rem;
+        color: #999;
+        padding: 6px 0;
+    }
+
+    .calendar-head span:first-child { color: #ff9a8b; }
+    .calendar-head span:last-child { color: #8ab4d8; }
+
+    .calendar-day {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 30px;
+        font-size: 0.78rem;
+        color: #555;
+    }
+
+    .calendar-day.sun { color: #ff9a8b; }
+    .calendar-day.sat { color: #8ab4d8; }
+
+    .calendar-day.target span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #ff9a8b;
+        color: #fff;
+    }
+
+    .countdown-tiles {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
+
+    .countdown-tiles .tile {
+        background: #fff;
+        border-radius: 10px;
+        padding: 12px 6px;
+        min-width: 58px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    }
+
+    .countdown-tiles .tile span {
+        display: block;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .countdown-tiles .tile small {
+        font-size: 0.6rem;
+        color: #aaa;
+        letter-spacing: 1px;
+    }
+
+    #remainTime {
+        color: #666;
+        font-size: 0.85rem;
+    }
+
+    #remainTime b { color: #ff7b7b; }
+
+    /* ---------- 결혼 정보 ---------- */
+    .couple-info {
+        background: #eef3f5;
+        padding: 40px 24px;
+        font-size: 1.2rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .couple-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+        padding: 10px 0;
+        font-size: 0.9rem;
+        color: #444;
+    }
+
+    .couple-row .role { color: #888; font-weight: 700; }
+
+    .inline-flower {
+        height: 1em;
+        width: auto;
+        vertical-align: -0.15em;
+        filter: grayscale(100%);
+        margin: 0 2px;
+    }
+
+    /* ---------- 갤러리 ---------- */
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+    }
+
+    .gallery-grid img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        cursor: pointer;
+    }
+
+    .lightbox {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.9);
+        z-index: 1001;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lightbox img {
+        max-width: 92%;
+        max-height: 80%;
+        object-fit: contain;
+    }
+
+    .lightbox .close,
+    .lightbox .nav {
+        position: absolute;
+        color: #fff;
+        font-size: 1.8rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 12px;
+    }
+
+    .lightbox .close { top: 10px; right: 10px; }
+    .lightbox .prev { left: 4px; top: 50%; transform: translateY(-50%); }
+    .lightbox .next { right: 4px; top: 50%; transform: translateY(-50%); }
+
+    /* ---------- 사진 업로드 ---------- */
+    .upload-btn {
+        display: inline-block;
+        padding: 14px 32px;
+        background: #ff9a8b;
+        color: #fff;
+        border: none;
+        border-radius: 30px;
+        font-size: 0.95rem;
+        cursor: pointer;
+    }
+
+    .upload-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 1002;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .upload-modal.open { display: flex; }
+
+    .upload-box {
+        background: #fff;
+        border-radius: 14px;
+        padding: 28px 22px;
+        width: 100%;
+        max-width: 320px;
+        text-align: center;
+    }
+
+    .upload-box h3 { font-size: 1.05rem; margin-bottom: 16px; }
+
+    .upload-box input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+        box-sizing: border-box;
+    }
+
+    .upload-box input[type="file"] {
+        width: 100%;
+        margin-bottom: 16px;
+        font-size: 0.8rem;
+    }
+
+    .upload-hint { font-size: 0.72rem; color: #aaa; margin: -6px 0 12px; }
+
+    .upload-actions { display: flex; gap: 8px; }
+
+    .upload-actions button {
+        flex: 1;
+        padding: 12px 0;
+        border-radius: 8px;
+        border: none;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .upload-cancel { background: #f0f0f0; color: #666; }
+    .upload-submit { background: #ff9a8b; color: #fff; }
+    .upload-submit:disabled { opacity: 0.5; }
+
+    .upload-status { margin-top: 12px; font-size: 0.8rem; color: #888; min-height: 18px; }
+
+    .upload-progress {
+        width: 100%;
+        height: 6px;
+        background: #f0e0da;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 14px;
+    }
+
+    .upload-progress-bar {
+        height: 100%;
+        width: 0%;
+        background: #ff9a8b;
+        transition: width 0.3s ease;
+    }
+
+    /* ---------- 마음 전하는 곳 ---------- */
+    .account { background-color: #ffe9f1; }
+
+    .account-block { max-width: 320px; margin: 0 auto; }
+
+    .account-toggle {
+        width: 100%;
+        padding: 14px;
+        background: #fff7f3;
+        border: 1px solid #f0d9d0;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        color: #333;
+        cursor: pointer;
+        margin-bottom: 8px;
+    }
+
+    .account-detail {
+        display: none;
+        padding: 4px 0 16px;
+        text-align: left;
+    }
+
+    .account-detail.open { display: block; }
+
+    .account-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 4px;
+        font-size: 0.85rem;
+    }
+
+    .copy-btn {
+        border: 1px solid #ddd;
+        background: #fff;
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        color: #666;
+    }
+    
+    /* ---------- 오시는길 ---------- */
+    .map-box {
+        width: 100%;
+        border-radius: 10px;
+        margin-bottom: 16px;
+        background: #fff;
+    }
+    
+    .map-box img {
+        width: 100%;
+        display: block;
+        border-radius: 10px;
+    }
+    
+    .map-links { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
+    
+    .map-links a {
+        flex: 1;
+        max-width: 140px;
+        padding: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #555;
+        font-size: 0.85rem;
+    }
+
+    .address { font-size: 0.85rem; color: #666; margin-bottom: 4px; }
+    .transit { font-size: 0.8rem; color: #999; text-align: left; line-height: 1.8; margin-top: 20px; }
+    .transit b { color: #666; }
+    
+    footer {
+        padding: 40px 24px 80px;
+        text-align: center;
+        font-size: 1rem;
+        color: #202020;
+    }
+
+    /* ---------- 감사인사 ---------- */
+    .thanks {
+        font-size: 1rem;
+        background-color: #f2ffe9;
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+
+    .thanks-note {
+        font-size: 1rem;
+        color: #1b1b1b;
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+
+    .rsvp-note {
+        font-size: 1rem;
+        color: #1b1b1b;
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+
+    /* ---------- 스크롤 페이드인 ---------- */
+    section, footer, .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    section.in-view, footer.in-view {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ---------- 벚꽃 ---------- */
+    .petal-field {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 480px;
+        z-index: 1000;
+        pointer-events: none;
+    }
+
+    .petal {
+        position: absolute;
+        top: -20px;
+        animation: petal-fall linear infinite;
+    }
+
+    .petal-inner {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #ffd9e6, #ffb7ce);
+        border-radius: 0 100% 0 100%;
+        animation: petal-spin linear infinite;
+    }
+
+    @keyframes petal-fall {
+        0%   { transform: translate(0, 0); }
+        50%  { transform: translate(calc(var(--sway, 1) * 70px), 50vh); }
+        100% { transform: translate(calc(var(--sway, 1) * -25px), 105vh); }
+    }
+
+    @keyframes petal-spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* ---------- BGM ---------- */
+    #bgm-toggle {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0,0,0,0.55);
+        color: #fff;
+        font-size: 1.1rem;
+        z-index: 50;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body class="intro-lock">
+
+<div class="petal-field" id="petalField"></div>
+
+<div class="intro-splash" id="introSplash">
+    <svg class="intro-svg" viewBox="0 0 400 200">
+        <text class="intro-text" id="introLine1" x="200" y="80" text-anchor="middle">다솔 은경</text>
+        <text class="intro-text" id="introLine2" x="200" y="150" text-anchor="middle">결혼합니다!</text>
+    </svg>
+</div>
+
+<div class="card">
+
+    <!-- 1. Hero -->
+    <div class="hero">
+        <div class="hero-slide active" style="background-image:url('images/main/main01.jpg')"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-text" style="margin-left: 14px;">
+            <div class="names">다솔 &amp; 은경</div>
+            <div class="date">2027. 05. 01 SAT AM 10:30</div>
+        </div>
+        <div class="scroll-cue">SCROLL ▾</div>
+    </div>
+
+    <!-- 2. 인사말 -->
+    <section class="greeting">
+        <h2>INVITATION</h2>
+        <h3 class="verse">우리가 사랑함은</h3>
+        <h3 class="verse">그가 우리를 먼저 사랑하셨음이라</h3>
+        <h3 class="verse-ref">요한일서 4:19</h3>
+        <p>하나님이 우리를 먼저 사랑하신 것 같이
+서로를 더욱 사랑하며 살아가고자 합니다.
+
+따스한 5월의 첫 날
+소중한 분들을 초대합니다.</p>
+        <div class="sub-photo">
+            <img src="images/main/main02.jpg" alt="">
+        </div>
+    </section>
+
+
+    <!-- 3. 카운트다운 -->
+    <section class="countdown-section">
+        <h2>WEDDING DAY</h2>
+        <div class="wedding-date-kr">2027년 5월 1일 토요일 오전 10시 30분</div>
+        <div class="wedding-date-en">Saturday, May 1, 2027 | AM 10:30</div>
+        <div class="wedding-venue">MJ컨벤션 5층 파티오볼룸</div>
+
+        <div class="calendar" id="calendar"></div>
+
+        <div class="countdown-tiles">
+            <div class="tile"><span id="cd-days">00</span><small>DAYS</small></div>
+            <div class="tile"><span id="cd-hours">00</span><small>HOURS</small></div>
+            <div class="tile"><span id="cd-minutes">00</span><small>MINUTES</small></div>
+            <div class="tile"><span id="cd-seconds">00</span><small>SECONDS</small></div>
+        </div>
+
+        <div class="countdown-caption" id="remainTime"></div>
+    </section>
+
+    <!-- 4. 결혼 정보 -->
+    <section class="couple-info">
+        <div class="couple-row"><span>김관용 · 윤영주 의</span><span class="role">아들</span><span style="font-weight: 700; font-size: 1.3rem;">다솔</span></div>
+        <div class="couple-row"><span>정병렬 · <img class="inline-flower" src="images/src/flower99.png" alt="">최윤심 의</span><span class="role">딸</span><span style="font-weight: 700; font-size: 1.3rem;">은경</span></div>
+    </section>
+
+    <!-- 5. 갤러리 -->
+    <section class="gallery">
+        <h2>GALLERY</h2>
+        <div class="gallery-grid" id="galleryGrid"></div>
+    </section>
+
+    <!-- 5.5 사진 업로드 -->
+    <section class="photo-upload">
+        <h2>사진 업로드</h2>
+        <p class="rsvp-note">함께한 순간을 담은 사진이 있다면<br>이 곳에 나눠주세요.<br>본인의 이름을 입력하시면 그 이름으로<br>폴더가 자동으로 만들어져요.<br>(이미지 파일만 업로드 가능해요)</p>
+        <button class="upload-btn" onclick="openUploadModal()">사진 업로드하기</button>
+    </section>
+
+    <!-- 6. 마음 전하는 곳 -->
+    <section class="account">
+        <h2>마음 전하는 곳</h2>
+        <div class="account-block">
+            <button class="account-toggle" onclick="toggleAccount('groom')">신랑측 계좌번호 보기 ▾</button>
+            <div class="account-detail" id="acc-groom">
+                <div class="account-row">
+                    <span>김다솔 국민 941602-00-058236</span>
+                    <button class="copy-btn" onclick="copyAccount('국민 941602-00-058236')">복사</button>
+                </div>
+                <div class="account-row">
+                    <span>김관용 국민 [계좌번호]</span>
+                    <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
+                </div>
+                <div class="account-row">
+                    <span>윤영주 국민 [계좌번호]</span>
+                    <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
+                </div>
+            </div>
+
+            <button class="account-toggle" onclick="toggleAccount('bride')">신부측 계좌번호 보기 ▾</button>
+            <div class="account-detail" id="acc-bride">
+                <div class="account-row">
+                    <span>정은경 국민 [계좌번호]</span>
+                    <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
+                </div>
+                <div class="account-row">
+                    <span>정병렬 국민 [계좌번호]</span>
+                    <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. RSVP
+    <section class="rsvp">
+        <h2>참석 의사 전달</h2>
+        <p class="rsvp-note">소중한 발걸음, 미리 알려주시면<br>준비하는 데 큰 도움이 됩니다.</p>
+        <a class="rsvp-btn" href="[구글폼 링크]" target="_blank">참석 여부 전달하기</a>
+    </section>
+    -->
+
+    <!-- 8. 오시는길 -->
+    <section class="location">
+        <h2 style="margin-bottom: 0;">오시는 길</h2>
+        <h3 class="address">MJ컨벤션</h3>
+        <div class="address">경기 부천시 소사구 경인로 386</div>
+        <div class="map-box"><img src="images/src/mj.png" alt="MJ컨벤션 약도"></div>
+        <!-- <div class="transit">
+            <div><b>지하철</b> [노선/출구 안내]</div>
+            <div><b>버스</b> [정류장/노선 안내]</div>
+            <div><b>주차</b> [주차 안내]</div>
+        </div> -->
+        <div class="map-links">
+            <a href="https://naver.me/xjgcfH6y" target="_blank">네이버지도</a>
+            <a href="https://place.map.kakao.com/27339651" target="_blank">카카오맵</a>
+        </div>
+    </section>
+
+    <section class="thanks">
+        <h2>THANK YOU</h2>
+        <img src="images/main/footer01.jpg" alt="" style="width: 100%; max-width: 480px; display: block; margin: 0 auto 20px;">
+        <p class="thanks-note">잘 살겠습니다!<br>귀한 시간 내주시고 축하해주셔서 감사합니다.<br>베풀어주신 것에 늘 감사하며 살겠습니다💕</p>
+    </section>
+</div>
+
+<!-- 사진 업로드 모달 -->
+<div class="upload-modal" id="uploadModal">
+    <div class="upload-box">
+        <h3>사진 업로드</h3>
+        <input type="text" id="uploadName" placeholder="이름을 입력해주세요" maxlength="30">
+        <input type="file" id="uploadFiles" accept="image/*" multiple>
+        <div class="upload-hint">업로드 중에는 화면을 벗어나거나 새로고침하지 마세요. 실패할 수 있어요.</div>
+        <div class="upload-actions" id="uploadActions">
+            <button class="upload-cancel" onclick="closeUploadModal()">취소</button>
+            <button class="upload-submit" id="uploadSubmitBtn" onclick="submitUpload()">업로드</button>
+        </div>
+        <button class="upload-submit" id="uploadConfirmBtn" style="display:none; width:100%; padding:12px 0;" onclick="closeUploadModal()">확인</button>
+        <div class="upload-progress" id="uploadProgress" style="display:none;">
+            <div class="upload-progress-bar" id="uploadProgressBar"></div>
+        </div>
+        <div class="upload-status" id="uploadStatus"></div>
+    </div>
+</div>
+
+<!-- 라이트박스 -->
+<div class="lightbox" id="lightbox">
+    <button class="close" onclick="closeLightbox()">✕</button>
+    <button class="nav prev" onclick="moveLightbox(-1)">‹</button>
+    <img id="lightboxImg" src="" alt="">
+    <button class="nav next" onclick="moveLightbox(1)">›</button>
+</div>
+
+<!-- BGM -->
+<audio id="bgm" src="audio/bgm.mp3" loop playsinline preload="auto"></audio>
+<button id="bgm-toggle" onclick="toggleBgm()">♫</button>
+
+<script>
+    // ---------- 새로고침해도 항상 맨 위에서 시작 ----------
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+
+    // ---------- 인트로 손글씨 (그려지고 1초 후 스플래시 제거 + 스크롤 해제) ----------
+    function drawIntroText(el, drawDelay, fillDelay) {
+        // 폰트 로딩 전 fallback 폰트로 측정된 길이가 남아있으면 draw가 어긋나 보이므로,
+        // 트랜지션을 잠깐 끄고 실제 길이로 다시 세팅한 뒤 강제 리플로우로 확정시킴
+        const len = el.getComputedTextLength();
+        el.style.transition = 'none';
+        el.style.strokeDasharray = len;
+        el.style.strokeDashoffset = len;
+        el.getBoundingClientRect();
+        el.style.transition = '';
+
+        setTimeout(() => { el.style.strokeDashoffset = 0; }, drawDelay);
+        setTimeout(() => { el.classList.add('filled'); }, fillDelay);
+    }
+
+    // 개발 중 인트로 매번 보기 귀찮으면 index.html?nointro 로 접속
+    if (new URLSearchParams(location.search).has('nointro')) {
+        document.body.classList.remove('intro-lock');
+        document.body.classList.add('intro-done');
+    } else {
+        document.fonts.ready.then(() => {
+            drawIntroText(document.getElementById('introLine1'), 300, 1900);
+            drawIntroText(document.getElementById('introLine2'), 1600, 3200);
+
+            setTimeout(() => {
+                document.body.classList.remove('intro-lock');
+                document.body.classList.add('intro-done');
+            }, 4700);
+        });
+    }
+
+    // ---------- 스크롤 페이드인 ----------
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { rootMargin: '0px 0px -40% 0px' });
+
+    document.querySelectorAll('section, .reveal').forEach(el => revealObserver.observe(el));
+
+    // footer는 페이지 맨 끝이라 -40% 지점까지 스크롤할 여백이 없어서 위 observer로는 안 뜸
+    const footerObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+                footerObserver.unobserve(entry.target);
+            }
+        });
+    });
+    document.querySelectorAll('footer').forEach(el => footerObserver.observe(el));
+
+    // ---------- 벚꽃 ----------
+    for (let i = 0; i < 18; i++) {
+        const petal = document.createElement('div');
+        petal.className = 'petal';
+        const size = 8 + Math.random() * 8;
+        petal.style.width = size + 'px';
+        petal.style.height = size + 'px';
+        petal.style.left = Math.random() * 100 + '%';
+        petal.style.opacity = 0.6 + Math.random() * 0.4;
+        petal.style.animationDuration = 8 + Math.random() * 8 + 's';
+        petal.style.animationDelay = Math.random() * 10 + 's';
+        petal.style.setProperty('--sway', Math.random() < 0.5 ? 1 : -1);
+
+        const inner = document.createElement('div');
+        inner.className = 'petal-inner';
+        inner.style.animationDuration = 2 + Math.random() * 6 + 's';
+        inner.style.animationDelay = -(Math.random() * 8) + 's';
+        petal.appendChild(inner);
+
+        document.getElementById('petalField').appendChild(petal);
+    }
+
+    // ---------- Calendar ----------
+    const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+    function renderCalendar(date) {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const targetDay = date.getDate();
+        const firstWeekday = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        const cal = document.getElementById('calendar');
+        const head = document.createElement('div');
+        head.className = 'calendar-row calendar-head';
+        WEEKDAYS.forEach(w => {
+            const span = document.createElement('span');
+            span.textContent = w;
+            head.appendChild(span);
+        });
+        cal.appendChild(head);
+
+        const grid = document.createElement('div');
+        grid.className = 'calendar-row';
+
+        for (let i = 0; i < firstWeekday; i++) {
+            grid.appendChild(document.createElement('div'));
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const weekday = (firstWeekday + day - 1) % 7;
+            const cell = document.createElement('div');
+            cell.className = 'calendar-day';
+            if (weekday === 0) cell.classList.add('sun');
+            if (weekday === 6) cell.classList.add('sat');
+            if (day === targetDay) cell.classList.add('target');
+
+            const span = document.createElement('span');
+            span.textContent = day;
+            cell.appendChild(span);
+            grid.appendChild(cell);
+
+            if (weekday === 6) {
+                cal.appendChild(grid.cloneNode(true));
+                grid.innerHTML = '';
+            }
+        }
+        if (grid.children.length) cal.appendChild(grid);
+    }
+
+    // ---------- Countdown ----------
+    const targetDate = new Date("2027-05-01T12:30:00");
+    renderCalendar(targetDate);
+
+    function updateCountdown() {
+        const now = new Date();
+        const diff = targetDate - now;
+
+        if (diff <= 0) {
+            document.getElementById("cd-days").textContent = "00";
+            document.getElementById("cd-hours").textContent = "00";
+            document.getElementById("cd-minutes").textContent = "00";
+            document.getElementById("cd-seconds").textContent = "00";
+            document.getElementById("remainTime").innerText = "결혼식 날입니다.";
+            return;
+        }
+
+        const totalSeconds = Math.floor(diff / 1000);
+        const days = Math.floor(totalSeconds / (60 * 60 * 24));
+        const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+        const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+        const seconds = totalSeconds % 60;
+
+        document.getElementById("cd-days").textContent = String(days).padStart(2, '0');
+        document.getElementById("cd-hours").textContent = String(hours).padStart(2, '0');
+        document.getElementById("cd-minutes").textContent = String(minutes).padStart(2, '0');
+        document.getElementById("cd-seconds").textContent = String(seconds).padStart(2, '0');
+        document.getElementById("remainTime").innerHTML =
+            `다솔 &#9825; 은경의 결혼식이 <b>${days}</b>일 남았습니다`;
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // ---------- Gallery ----------
+    const galleryCount = 11;
+    const galleryPaths = Array.from({length: galleryCount}, (_, i) =>
+        `images/gallery/sub${String(i + 1).padStart(2, '0')}.jpg`
+    );
+
+    const grid = document.getElementById('galleryGrid');
+    galleryPaths.forEach((path, i) => {
+        const img = document.createElement('img');
+        img.src = path;
+        img.loading = 'lazy';
+        img.onclick = () => openLightbox(i);
+        grid.appendChild(img);
+    });
+
+    let lbIndex = 0;
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+
+    function openLightbox(i) {
+        lbIndex = i;
+        lightboxImg.src = galleryPaths[lbIndex];
+        lightbox.classList.add('open');
+    }
+    function closeLightbox() {
+        lightbox.classList.remove('open');
+    }
+    function moveLightbox(dir) {
+        lbIndex = (lbIndex + dir + galleryPaths.length) % galleryPaths.length;
+        lightboxImg.src = galleryPaths[lbIndex];
+    }
+
+    // ---------- Account toggle ----------
+    function toggleAccount(who) {
+        document.getElementById('acc-' + who).classList.toggle('open');
+    }
+    function copyAccount(text) {
+        navigator.clipboard.writeText(text);
+        alert('계좌번호가 복사되었습니다.');
+    }
+
+    // ---------- 사진 업로드 ----------
+    const UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbzmhk4scxIM-OvCOGkkgWR5wxU_M80N6guccwqg4ZrK4PaCo9vGDyyiSD8lQL0az8wV/exec';
+    const BLOCKED_VIDEO_EXT = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.3gp', '.wmv', '.flv', '.m4v'];
+
+    function isVideoFile(file) {
+        if (file.type && file.type.startsWith('video/')) return true;
+        const lower = file.name.toLowerCase();
+        return BLOCKED_VIDEO_EXT.some(ext => lower.endsWith(ext));
+    }
+    const BATCH_MB = 8;
+
+    function openUploadModal() {
+        document.getElementById('uploadModal').classList.add('open');
+    }
+    function closeUploadModal() {
+        document.getElementById('uploadModal').classList.remove('open');
+        document.getElementById('uploadStatus').textContent = '';
+        document.getElementById('uploadName').value = '';
+        document.getElementById('uploadName').style.display = '';
+        document.getElementById('uploadFiles').style.display = '';
+        document.getElementById('uploadActions').style.display = 'flex';
+        document.getElementById('uploadConfirmBtn').style.display = 'none';
+        document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('uploadProgressBar').style.width = '0%';
+    }
+
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function submitUpload() {
+        const name = document.getElementById('uploadName').value.trim();
+        const fileInput = document.getElementById('uploadFiles');
+        const status = document.getElementById('uploadStatus');
+        const submitBtn = document.getElementById('uploadSubmitBtn');
+
+        if (!name) { status.textContent = '이름을 입력해주세요.'; return; }
+        if (!fileInput.files.length) { status.textContent = '사진을 선택해주세요.'; return; }
+        const videoFiles = Array.from(fileInput.files).filter(isVideoFile);
+        if (videoFiles.length) {
+            status.textContent = `영상은 업로드할 수 없어요: ${videoFiles.map(f => f.name).join(', ')}`;
+            return;
+        }
+
+        // 용량이 크면 여러 배치로 나눠서 순차 전송 (같은 폴더에 이어서 저장됨)
+        const batches = [];
+        let current = [];
+        let currentBytes = 0;
+        const batchLimit = BATCH_MB * 1024 * 1024;
+        for (const f of fileInput.files) {
+            if (current.length && currentBytes + f.size > batchLimit) {
+                batches.push(current);
+                current = [];
+                currentBytes = 0;
+            }
+            current.push(f);
+            currentBytes += f.size;
+        }
+        if (current.length) batches.push(current);
+
+        const totalFiles = fileInput.files.length;
+        const progressWrap = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('uploadProgressBar');
+        progressWrap.style.display = 'block';
+        progressBar.style.width = '0%';
+
+        submitBtn.disabled = true;
+        const beforeUnloadHandler = (e) => { e.preventDefault(); e.returnValue = ''; };
+        window.addEventListener('beforeunload', beforeUnloadHandler);
+
+        let folderId = null;
+        let uploadedCount = 0;
+        try {
+            for (let i = 0; i < batches.length; i++) {
+                status.textContent = `업로드 중... (${uploadedCount}/${totalFiles}장)`;
+
+                const files = await Promise.all(batches[i].map(async f => ({
+                    filename: f.name,
+                    mimeType: f.type,
+                    data: await fileToBase64(f)
+                })));
+
+                const res = await fetch(UPLOAD_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ name, folderId, files })
+                });
+                const result = await res.json();
+                if (!result.ok) throw new Error(result.error || '업로드 실패');
+
+                folderId = result.folderId;
+                uploadedCount += result.count;
+                progressBar.style.width = Math.round(uploadedCount / totalFiles * 100) + '%';
+                status.textContent = `업로드 중... (${uploadedCount}/${totalFiles}장)`;
+            }
+
+            status.textContent = `업로드 완료! (${uploadedCount}장)`;
+            fileInput.value = '';
+            document.getElementById('uploadName').style.display = 'none';
+            document.getElementById('uploadFiles').style.display = 'none';
+            document.getElementById('uploadActions').style.display = 'none';
+            document.getElementById('uploadConfirmBtn').style.display = 'block';
+        } catch (err) {
+            status.textContent = err.message || '업로드 중 오류가 발생했습니다.';
+        } finally {
+            submitBtn.disabled = false;
+            window.removeEventListener('beforeunload', beforeUnloadHandler);
+        }
+    }
+
+    // ---------- BGM ----------
+    // preload="auto"로 미리 다 받아두되 재생은 안 시켜서(위치 0초 유지),
+    // 로드 시 소리 켠 채로 재생 시도 -> 정책상 막히면(주로 iOS/안드로이드) 첫 터치에 처음부터 재생
+    const bgm = document.getElementById('bgm');
+    let bgmPlaying = false;
+
+    bgm.play().then(() => { bgmPlaying = true; }).catch(() => {
+        const startOnInteract = () => {
+            bgm.play().then(() => { bgmPlaying = true; }).catch(() => {});
+            document.removeEventListener('click', startOnInteract);
+            document.removeEventListener('touchstart', startOnInteract);
+        };
+        document.addEventListener('click', startOnInteract);
+        document.addEventListener('touchstart', startOnInteract);
+    });
+
+    function toggleBgm() {
+        if (bgmPlaying) { bgm.pause(); } else { bgm.play().catch(() => {}); }
+        bgmPlaying = !bgmPlaying;
+    }
+</script>
+
+</body>
+</html>
