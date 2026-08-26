@@ -1136,13 +1136,10 @@
     let bgmPlaying = false;
 
     bgm.play().then(() => { bgmPlaying = true; }).catch(() => {
-        const startOnInteract = () => {
-            bgm.play().then(() => { bgmPlaying = true; }).catch(() => {});
-            document.removeEventListener('click', startOnInteract);
-            document.removeEventListener('touchstart', startOnInteract);
-        };
-        document.addEventListener('click', startOnInteract);
-        document.addEventListener('touchstart', startOnInteract);
+        const startOnInteract = () => { bgm.play().then(() => { bgmPlaying = true; }).catch(() => {}); };
+        ['click', 'touchstart', 'scroll', 'keydown', 'wheel'].forEach(evt => {
+            document.addEventListener(evt, startOnInteract, { once: true, passive: true });
+        });
     });
 
     function toggleBgm() {
