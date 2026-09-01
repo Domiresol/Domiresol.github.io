@@ -21,6 +21,9 @@
         font-family: 'Gowun Batang', 'Malgun Gothic', 'Apple SD Gothic Neo', serif;
         background: #fff7f3;
         color: #4a4a4a;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
     }
 
     body.intro-lock {
@@ -339,6 +342,15 @@
         gap: 4px;
     }
 
+    .gallery-grid img,
+    .lightbox img {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-user-drag: none;
+        -webkit-touch-callout: none;
+        touch-action: pan-y;
+    }
+
     .gallery-grid img {
         width: 100%;
         height: 120px;
@@ -500,13 +512,27 @@
     }
 
     .copy-btn {
-        border: 1px solid #ddd;
-        background: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
         border-radius: 6px;
-        padding: 4px 10px;
-        font-size: 0.75rem;
+        width: 28px;
+        height: 28px;
+        padding: 0;
         cursor: pointer;
         color: #666;
+    }
+
+    .copy-icon {
+        width: 15px;
+        height: 15px;
+    }
+
+    .account-row .copy-btn {
+        border: 1px solid #ddd;
+        background: #fff;
     }
     
     /* ---------- 오시는길 ---------- */
@@ -537,6 +563,16 @@
     }
 
     .address { font-size: 0.85rem; color: #666; margin-bottom: 4px; }
+
+    .address-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 4px;
+    }
     .transit { font-size: 0.8rem; color: #999; text-align: left; line-height: 1.8; margin-top: 20px; }
     .transit b { color: #666; }
     
@@ -722,15 +758,15 @@
             <div class="account-detail" id="acc-groom">
                 <div class="account-row">
                     <span>김다솔 국민 941602-00-058236</span>
-                    <button class="copy-btn" onclick="copyAccount('국민 941602-00-058236')">복사</button>
+                    <button class="copy-btn" aria-label="복사" onclick="copyAccount('국민 941602-00-058236')"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
                 </div>
                 <div class="account-row">
                     <span>김관용 국민 [계좌번호]</span>
-                    <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
+                    <button class="copy-btn" aria-label="복사" onclick="copyAccount('국민 [계좌번호]')"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
                 </div>
                 <div class="account-row">
                     <span>윤영주 국민 [계좌번호]</span>
-                    <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
+                    <button class="copy-btn" aria-label="복사" onclick="copyAccount('국민 [계좌번호]')"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
                 </div>
             </div>
 
@@ -738,11 +774,11 @@
             <div class="account-detail" id="acc-bride">
                 <div class="account-row">
                     <span>정은경 국민 [계좌번호]</span>
-                    <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
+                    <button class="copy-btn" aria-label="복사" onclick="copyAccount('국민 [계좌번호]')"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
                 </div>
                 <div class="account-row">
                     <span>정병렬 국민 [계좌번호]</span>
-                    <button class="copy-btn" onclick="copyAccount('국민 [계좌번호]')">복사</button>
+                    <button class="copy-btn" aria-label="복사" onclick="copyAccount('국민 [계좌번호]')"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
                 </div>
             </div>
         </div>
@@ -760,7 +796,14 @@
     <section class="location">
         <h2 style="margin-bottom: 0;">오시는 길</h2>
         <h3 class="address">MJ컨벤션</h3>
-        <div class="address">경기 부천시 소사구 경인로 386</div>
+        <div class="address-row">
+            <span>경기 부천시 소사구 경인로 386</span>
+            <button class="copy-btn" aria-label="복사" onclick="copyAccount('경기 부천시 소사구 경인로 386')"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        </div>
+        <div class="address-row">
+            <span>경기 부천시 소사구 소사본동 65-7</span>
+            <button class="copy-btn" aria-label="복사" onclick="copyAccount('경기 부천시 소사구 소사본동 65-7')"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        </div>
         <div class="map-box"><img src="images/src/mj.png" alt="MJ컨벤션 약도"></div>
         <!-- <div class="transit">
             <div><b>지하철</b> [노선/출구 안내]</div>
@@ -984,6 +1027,8 @@
         const img = document.createElement('img');
         img.src = path;
         img.loading = 'lazy';
+        img.draggable = false;
+        img.oncontextmenu = () => false;
         img.onclick = () => openLightbox(i);
         grid.appendChild(img);
     });
@@ -991,6 +1036,8 @@
     let lbIndex = 0;
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightboxImg');
+    lightboxImg.draggable = false;
+    lightboxImg.oncontextmenu = () => false;
 
     function openLightbox(i) {
         lbIndex = i;
