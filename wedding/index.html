@@ -342,8 +342,7 @@
         gap: 4px;
     }
 
-    .gallery-grid img,
-    .lightbox img {
+    img {
         -webkit-user-select: none;
         user-select: none;
         -webkit-user-drag: none;
@@ -798,11 +797,11 @@
         <h3 class="address">MJ컨벤션</h3>
         <div class="address-row">
             <span>경기 부천시 소사구 경인로 386</span>
-            <button class="copy-btn" aria-label="복사" onclick="copyAccount('경기 부천시 소사구 경인로 386')"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="copy-btn" aria-label="복사" onclick="copyAddress('경기 부천시 소사구 경인로 386')"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
         </div>
         <div class="address-row">
             <span>경기 부천시 소사구 소사본동 65-7</span>
-            <button class="copy-btn" aria-label="복사" onclick="copyAccount('경기 부천시 소사구 소사본동 65-7')"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="copy-btn" aria-label="복사" onclick="copyAddress('경기 부천시 소사구 소사본동 65-7')"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
         </div>
         <div class="map-box"><img src="images/src/mj.png" alt="MJ컨벤션 약도"></div>
         <!-- <div class="transit">
@@ -1027,8 +1026,6 @@
         const img = document.createElement('img');
         img.src = path;
         img.loading = 'lazy';
-        img.draggable = false;
-        img.oncontextmenu = () => false;
         img.onclick = () => openLightbox(i);
         grid.appendChild(img);
     });
@@ -1036,8 +1033,14 @@
     let lbIndex = 0;
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightboxImg');
-    lightboxImg.draggable = false;
-    lightboxImg.oncontextmenu = () => false;
+
+    // 사진 다운로드 방지: 우클릭 저장, 드래그 저장 사이트 전체 차단
+    document.addEventListener('contextmenu', e => {
+        if (e.target.tagName === 'IMG') e.preventDefault();
+    });
+    document.addEventListener('dragstart', e => {
+        if (e.target.tagName === 'IMG') e.preventDefault();
+    });
 
     function openLightbox(i) {
         lbIndex = i;
@@ -1059,6 +1062,10 @@
     function copyAccount(text) {
         navigator.clipboard.writeText(text);
         alert('계좌번호가 복사되었습니다.');
+    }
+    function copyAddress(text) {
+        navigator.clipboard.writeText(text);
+        alert('주소가 복사되었습니다.');
     }
 
     // ---------- 사진 업로드 ----------
