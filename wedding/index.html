@@ -559,6 +559,16 @@
         text-decoration: none;
         color: #555;
         font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .map-links a img {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
     }
 
     .address { font-size: 0.85rem; color: #666; margin-bottom: 4px; }
@@ -811,8 +821,12 @@
             <div><b>주차</b> [주차 안내]</div>
         </div> -->
         <div class="map-links">
-            <a href="https://naver.me/xjgcfH6y" target="_blank">네이버지도</a>
-            <a href="https://place.map.kakao.com/27339651" target="_blank">카카오맵</a>
+            <a href="https://naver.me/xjgcfH6y" target="_blank"><img src="https://www.google.com/s2/favicons?domain=map.naver.com&sz=64" alt="">네이버지도</a>
+            <a href="https://place.map.kakao.com/27339651" target="_blank"><img src="https://www.google.com/s2/favicons?domain=map.kakao.com&sz=64" alt="">카카오맵</a>
+        </div>
+        <div class="map-links">
+            <a href="#" onclick="openKakaoNavi(); return false;"><img src="https://www.google.com/s2/favicons?domain=navi.kakao.com&sz=64" alt="">카카오내비</a>
+            <a href="#" onclick="openTmap(); return false;"><img src="https://www.google.com/s2/favicons?domain=tmap.co.kr&sz=64" alt="">티맵</a>
         </div>
         
     </section>
@@ -899,7 +913,7 @@
                 revealObserver.unobserve(entry.target);
             }
         });
-    }, { rootMargin: '0px 0px -40% 0px' });
+    }, { rootMargin: '0px 0px -20% 0px' });
 
     document.querySelectorAll('section, .reveal').forEach(el => revealObserver.observe(el));
 
@@ -1207,13 +1221,37 @@
 <!-- 네이버 지도 -->
 <script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=jonbqbv721&submodules=geocoder"></script>
 <script>
+    let venueX, venueY;
     naver.maps.Service.geocode({ query: '경기 부천시 소사구 경인로 386' }, function (status, response) {
         if (status !== naver.maps.Service.Status.OK) return;
         const item = response.v2.addresses[0];
+        venueX = item.x; venueY = item.y;
         const loc = new naver.maps.LatLng(item.y, item.x);
         const map = new naver.maps.Map('naver-map', { center: loc, zoom: 17 });
         new naver.maps.Marker({ position: loc, map: map });
     });
+
+    function openKakaoNavi() {
+        if (!venueX) return;
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        location.href = `kakaonavi://navigate?name=${encodeURIComponent('MJ컨벤션')}&x=${venueX}&y=${venueY}&coord_type=wgs84`;
+        setTimeout(() => {
+            location.href = isIOS
+                ? 'https://apps.apple.com/kr/app/id1122906893'
+                : 'https://play.google.com/store/apps/details?id=com.locnall.KimGiSa';
+        }, 1500);
+    }
+
+    function openTmap() {
+        if (!venueX) return;
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        location.href = `tmap://route?goalname=${encodeURIComponent('MJ컨벤션')}&goalx=${venueX}&goaly=${venueY}`;
+        setTimeout(() => {
+            location.href = isIOS
+                ? 'https://apps.apple.com/kr/app/id431589174'
+                : 'https://play.google.com/store/apps/details?id=com.skt.tmap.ku';
+        }, 1500);
+    }
 </script>
 
 </body>
