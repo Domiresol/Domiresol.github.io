@@ -1220,6 +1220,13 @@
 
 <!-- 네이버 지도 -->
 <script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=jonbqbv721&submodules=geocoder"></script>
+
+<!-- 카카오내비 -->
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.3/kakao.min.js"></script>
+<script>
+    Kakao.init('646f53f86604faa629c5aa237466ced3');
+</script>
+
 <script>
     let venueX, venueY;
     naver.maps.Service.geocode({ query: '경기 부천시 소사구 경인로 386' }, function (status, response) {
@@ -1233,13 +1240,12 @@
 
     function openKakaoNavi() {
         if (!venueX) return;
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        location.href = `kakaonavi://navigate?name=${encodeURIComponent('MJ컨벤션')}&x=${venueX}&y=${venueY}&coord_type=wgs84`;
-        setTimeout(() => {
-            location.href = isIOS
-                ? 'https://apps.apple.com/kr/app/id1122906893'
-                : 'https://play.google.com/store/apps/details?id=com.locnall.KimGiSa';
-        }, 1500);
+        Kakao.Navi.start({
+            name: 'MJ컨벤션',
+            x: venueX,
+            y: venueY,
+            coordType: 'wgs84'
+        });
     }
 
     function openTmap() {
