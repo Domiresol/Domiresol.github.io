@@ -825,7 +825,7 @@
             <a href="https://place.map.kakao.com/27339651" target="_blank"><img src="https://www.google.com/s2/favicons?domain=map.kakao.com&sz=64" alt="">카카오맵</a>
         </div>
         <div class="map-links">
-            <a href="#" onclick="openKakaoNavi(); return false;"><img src="https://www.google.com/s2/favicons?domain=navi.kakao.com&sz=64" alt="">카카오내비</a>
+            <a href="#" onclick="openKakaoNavi(); return false;"><img src="https://www.google.com/s2/favicons?domain=map.kakao.com&sz=64" alt="">카카오내비</a>
             <a href="#" onclick="openTmap(); return false;"><img src="https://www.google.com/s2/favicons?domain=tmap.co.kr&sz=64" alt="">티맵</a>
         </div>
         
@@ -1221,12 +1221,6 @@
 <!-- 네이버 지도 -->
 <script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=jonbqbv721&submodules=geocoder"></script>
 
-<!-- 카카오내비 -->
-<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.3/kakao.min.js"></script>
-<script>
-    Kakao.init('a1042563510594e0653df4cf622efcf8');
-</script>
-
 <script>
     let venueX, venueY;
     naver.maps.Service.geocode({ query: '경기 부천시 소사구 경인로 386' }, function (status, response) {
@@ -1240,12 +1234,13 @@
 
     function openKakaoNavi() {
         if (!venueX) return;
-        Kakao.Navi.start({
-            name: 'MJ컨벤션',
-            x: venueX,
-            y: venueY,
-            coordType: 'wgs84'
-        });
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        location.href = `kakaomap://route?sp=&ep=${venueY},${venueX}&by=car`;
+        setTimeout(() => {
+            location.href = isIOS
+                ? 'https://apps.apple.com/kr/app/id304608425'
+                : 'https://play.google.com/store/apps/details?id=net.daum.android.map';
+        }, 1500);
     }
 
     function openTmap() {
