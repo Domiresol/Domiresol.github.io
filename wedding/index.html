@@ -401,6 +401,16 @@
     .lightbox .prev { left: 4px; top: 50%; transform: translateY(-50%); }
     .lightbox .next { right: 4px; top: 50%; transform: translateY(-50%); }
 
+    .lightbox-counter {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #fff;
+        font-size: 0.85rem;
+        opacity: 0.85;
+    }
+
     /* ---------- 사진 업로드 ---------- */
     .upload-btn {
         display: inline-block;
@@ -874,6 +884,7 @@
     <button class="nav prev" onclick="moveLightbox(-1)">‹</button>
     <img id="lightboxImg" src="" alt="">
     <button class="nav next" onclick="moveLightbox(1)">›</button>
+    <div class="lightbox-counter" id="lightboxCounter"></div>
 </div>
 
 <!-- BGM -->
@@ -1071,6 +1082,7 @@
     let lbIndex = 0;
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxCounter = document.getElementById('lightboxCounter');
 
     // 사진 다운로드 방지: 우클릭 저장, 드래그 저장 사이트 전체 차단
     document.addEventListener('contextmenu', e => {
@@ -1083,6 +1095,7 @@
     function openLightbox(i) {
         lbIndex = i;
         lightboxImg.src = galleryPaths[lbIndex];
+        lightboxCounter.textContent = `${lbIndex + 1} / ${galleryPaths.length}`;
         lightbox.classList.add('open');
     }
     function closeLightbox() {
@@ -1091,6 +1104,7 @@
     function moveLightbox(dir) {
         lbIndex = (lbIndex + dir + galleryPaths.length) % galleryPaths.length;
         lightboxImg.src = galleryPaths[lbIndex];
+        lightboxCounter.textContent = `${lbIndex + 1} / ${galleryPaths.length}`;
     }
 
     // 라이트박스 스와이프 넘기기
