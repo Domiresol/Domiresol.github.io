@@ -11,7 +11,7 @@
 <meta property="og:url" content="https://domiresol.github.io/wedding/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Meddon&family=Nanum+Pen+Script&family=Gowun+Batang&family=Noto+Sans+KR:wght@700&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Meddon&family=Nanum+Pen+Script&family=Gowun+Batang&family=Noto+Sans+KR:wght@700&family=Nanum+Myeongjo&family=Cormorant+Garamond:ital@1&family=Pinyon+Script&display=swap" rel="stylesheet">
 
 <style>
     * { box-sizing: border-box; }
@@ -136,9 +136,20 @@
     }
 
     .hero-text .names {
-        font-size: 1.8rem;
-        letter-spacing: 3px;
+        font-family: 'Cormorant Garamond', serif;
+        font-style: italic;
+        font-weight: 500;
+        font-size: 2.6rem;
+        letter-spacing: 1px;
         margin-bottom: 10px;
+    }
+
+    .hero-text .names .amp {
+        font-family: 'Pinyon Script', cursive;
+        font-style: normal;
+        font-size: 1.4em;
+        margin: 0 4px;
+        vertical-align: -0.08em;
     }
 
     .hero-text .date {
@@ -698,7 +709,7 @@
         <div class="hero-slide active" style="background-image:url('images/main/main01.jpg')"></div>
         <div class="hero-overlay"></div>
         <div class="hero-text" style="margin-left: 14px;">
-            <div class="names">다솔 &amp; 은경</div>
+            <div class="names">Dasol <span class="amp">&amp;</span> Eungyeong</div>
             <div class="date">2027. 05. 01 SAT AM 10:30</div>
         </div>
         <div class="scroll-cue">SCROLL ▾</div>
@@ -1032,7 +1043,7 @@
     setInterval(updateCountdown, 1000);
 
     // ---------- Gallery ----------
-    const galleryCount = 11;
+    const galleryCount = 71;
     const galleryPaths = Array.from({length: galleryCount}, (_, i) =>
         `images/gallery/sub${String(i + 1).padStart(2, '0')}.jpg`
     );
