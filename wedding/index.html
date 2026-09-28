@@ -1092,6 +1092,18 @@
         if (e.target.tagName === 'IMG') e.preventDefault();
     });
 
+    // 개발자도구 단축키 차단 시도 (최신 브라우저에선 안 먹힐 수 있음)
+    document.addEventListener('keydown', e => {
+        const isDevtoolsKey = e.key === 'F12' ||
+            (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === 'C') ||
+            (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === 'I') ||
+            (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === 'J');
+        if (isDevtoolsKey) {
+            e.preventDefault();
+            alert('개발자 도구는 사용할 수 없습니다.');
+        }
+    });
+
     function openLightbox(i) {
         lbIndex = i;
         lightboxImg.src = galleryPaths[lbIndex];
