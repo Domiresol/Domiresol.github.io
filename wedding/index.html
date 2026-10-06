@@ -707,7 +707,7 @@
 
 <div class="intro-splash" id="introSplash">
     <svg class="intro-svg" viewBox="0 0 400 200">
-        <text class="intro-text" id="introLine1" x="200" y="80" text-anchor="middle">다솔 은경</text>
+        <text class="intro-text" id="introLine1" x="200" y="80" text-anchor="middle">다솔, 은경</text>
         <text class="intro-text" id="introLine2" x="200" y="150" text-anchor="middle">결혼합니다!</text>
     </svg>
 </div>
@@ -719,7 +719,7 @@
         <div class="hero-slide active" style="background-image:url('images/main/main01.jpg')"></div>
         <div class="hero-overlay"></div>
         <div class="hero-text" style="margin-left: 14px;">
-            <div class="names">Dasol <span class="amp">&amp;</span> Eungyeong</div>
+            <div class="names">Dasol <span class="amp">&amp;</span> EunKyung</div>
             <div class="date">2027. 05. 01 SAT AM 10:30</div>
         </div>
         <div class="scroll-cue">SCROLL ▾</div>
@@ -1336,18 +1336,28 @@
         });
     }
 
-    // 공유 카드의 '일정 등록' 버튼으로 진입 시 캘린더로 이동 (iOS: .ics, 그 외: 구글 캘린더)
-    // 카카오톡 인앱 브라우저는 구글 로그인이 없어 외부 브라우저로 열기
+    // 공유 카드의 '일정 등록' 버튼으로 진입 시 기기 캘린더에 등록
+    // Android: 캘린더 앱 일정 추가 화면 호출 (실패 시 구글 캘린더 웹)
+    // iOS 등: .ics 열기 (카카오톡 인앱 브라우저는 .ics 처리가 불안정해 외부 브라우저로 열기)
     if (new URLSearchParams(location.search).has('cal')) {
-        const calUrl = /iPhone|iPad|iPod/i.test(navigator.userAgent)
-            ? SITE_URL + 'wedding.ics'
-            : 'https://calendar.google.com/calendar/render?action=TEMPLATE'
-                + '&text=' + encodeURIComponent('다솔 ♡ 은경 결혼식')
+        const title = '다솔, 은경 결혼식';
+        const place = 'MJ컨벤션 5층 파티오볼룸, 경기 부천시 소사구 경인로 386';
+        if (/Android/i.test(navigator.userAgent)) {
+            const fallback = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+                + '&text=' + encodeURIComponent(title)
                 + '&dates=20270501T013000Z/20270501T023000Z'
-                + '&location=' + encodeURIComponent('MJ컨벤션 5층 파티오볼룸, 경기 부천시 소사구 경인로 386');
-        location.replace(/KAKAOTALK/i.test(navigator.userAgent)
-            ? 'kakaotalk://web/openExternal?url=' + encodeURIComponent(calUrl)
-            : calUrl);
+                + '&location=' + encodeURIComponent(place);
+            location.replace('intent:#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.item/event'
+                + ';S.title=' + encodeURIComponent(title)
+                + ';S.eventLocation=' + encodeURIComponent(place)
+                + ';l.beginTime=1809135000000;l.endTime=1809138600000'
+                + ';S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end');
+        } else {
+            const calUrl = SITE_URL + 'wedding.ics';
+            location.replace(/KAKAOTALK/i.test(navigator.userAgent)
+                ? 'kakaotalk://web/openExternal?url=' + encodeURIComponent(calUrl)
+                : calUrl);
+        }
     }
 </script>
 
