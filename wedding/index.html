@@ -1337,13 +1337,17 @@
     }
 
     // 공유 카드의 '일정 등록' 버튼으로 진입 시 캘린더로 이동 (iOS: .ics, 그 외: 구글 캘린더)
+    // 카카오톡 인앱 브라우저는 구글 로그인이 없어 외부 브라우저로 열기
     if (new URLSearchParams(location.search).has('cal')) {
-        location.replace(/iPhone|iPad|iPod/i.test(navigator.userAgent)
+        const calUrl = /iPhone|iPad|iPod/i.test(navigator.userAgent)
             ? SITE_URL + 'wedding.ics'
             : 'https://calendar.google.com/calendar/render?action=TEMPLATE'
                 + '&text=' + encodeURIComponent('다솔 ♡ 은경 결혼식')
                 + '&dates=20270501T013000Z/20270501T023000Z'
-                + '&location=' + encodeURIComponent('MJ컨벤션 5층 파티오볼룸, 경기 부천시 소사구 경인로 386'));
+                + '&location=' + encodeURIComponent('MJ컨벤션 5층 파티오볼룸, 경기 부천시 소사구 경인로 386');
+        location.replace(/KAKAOTALK/i.test(navigator.userAgent)
+            ? 'kakaotalk://web/openExternal?url=' + encodeURIComponent(calUrl)
+            : calUrl);
     }
 </script>
 
