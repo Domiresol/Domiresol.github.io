@@ -267,14 +267,33 @@
     .calendar-day.sat { color: #8ab4d8; }
 
     .calendar-day.target span {
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
         width: 24px;
         height: 24px;
-        border-radius: 50%;
-        background: #ff9a8b;
         color: #fff;
+        z-index: 1;
+    }
+
+    .calendar-day.target span::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 24px;
+        height: 22px;
+        background: #ff9a8b;
+        clip-path: path('M12,21.35 L10.55,20.03 C5.4,15.36 2,12.28 2,8.5 C2,5.42 4.42,3 7.5,3 C9.24,3 10.91,3.81 12,5.09 C13.09,3.81 14.76,3 16.5,3 C19.58,3 22,5.42 22,8.5 C22,12.28 18.6,15.36 13.45,20.04 L12,21.35 Z');
+        transform: translate(-50%, calc(-50% - 1px)) scale(1);
+        animation: heartbeat 1.1s ease-in-out infinite;
+        z-index: -1;
+    }
+
+    @keyframes heartbeat {
+        0%, 100% { transform: translate(-50%, calc(-50% - 1px)) scale(1); }
+        50% { transform: translate(-50%, calc(-50% - 1px)) scale(1.22); }
     }
 
     .countdown-tiles {
@@ -421,6 +440,10 @@
         border-radius: 30px;
         font-size: 0.95rem;
         cursor: pointer;
+    }
+    .upload-btn:disabled {
+        background: #ccc;
+        cursor: default;
     }
 
     .upload-modal {
@@ -707,7 +730,7 @@
 
 <div class="intro-splash" id="introSplash">
     <svg class="intro-svg" viewBox="0 0 400 200">
-        <text class="intro-text" id="introLine1" x="200" y="80" text-anchor="middle">다솔, 은경</text>
+        <text class="intro-text" id="introLine1" x="200" y="80" text-anchor="middle">다솔 은경</text>
         <text class="intro-text" id="introLine2" x="200" y="150" text-anchor="middle">결혼합니다!</text>
     </svg>
 </div>
@@ -777,7 +800,7 @@
     <section class="photo-upload">
         <h2>사진 업로드</h2>
         <p class="rsvp-note">함께한 순간을 담은 사진이 있다면<br>이 곳에 나눠주세요.<br>본인의 이름을 입력하시면 그 이름으로<br>폴더가 자동으로 만들어져요.<br>(이미지 파일만 업로드 가능해요)</p>
-        <button class="upload-btn" onclick="openUploadModal()">사진 업로드하기</button>
+        <button class="upload-btn" id="uploadOpenBtn" onclick="openUploadModal()" disabled>5월 1일부터 업로드 가능해요</button>
     </section>
 
     <!-- 6. 마음 전하는 곳 -->
@@ -1154,7 +1177,26 @@
     }
     const BATCH_MB = 8;
 
+    // 업로드 허용 기간 (한국시간 2027-05-01 00:00 ~ 2027-05-03 23:59:59)
+    const UPLOAD_START = new Date('2027-05-01T00:00:00+09:00');
+    const UPLOAD_END = new Date('2027-05-03T00:00:00+09:00');
+    function isUploadOpen() {
+        const now = new Date();
+        return now >= UPLOAD_START && now < UPLOAD_END;
+    }
+    (function initUploadBtn() {
+        const btn = document.getElementById('uploadOpenBtn');
+        const now = new Date();
+        if (isUploadOpen()) {
+            btn.disabled = false;
+            btn.textContent = '사진 업로드하기';
+        } else if (now >= UPLOAD_END) {
+            btn.textContent = '업로드 기간이 종료되었어요';
+        }
+    })();
+
     function openUploadModal() {
+        if (!isUploadOpen()) return;
         document.getElementById('uploadModal').classList.add('open');
     }
     function closeUploadModal() {
