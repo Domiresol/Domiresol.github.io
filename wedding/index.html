@@ -856,6 +856,7 @@
         <h2>THANK YOU</h2>
         <img src="images/main/footer01.jpg" alt="" style="width: 100%; max-width: 480px; display: block; margin: 0 auto 20px;">
         <p class="thanks-note">잘 살겠습니다!<br>귀한 시간 내주시고 축하해주셔서 감사합니다.<br>베풀어주신 것에 늘 감사하며 살겠습니다💕</p>
+        <button class="upload-btn" onclick="shareKakao()">카카오톡으로 공유하기</button>
     </section>
 </div>
 
@@ -1310,6 +1311,39 @@
                 ? 'https://apps.apple.com/kr/app/id431589174'
                 : 'https://play.google.com/store/apps/details?id=com.skt.tmap.ku';
         }, 1500);
+    }
+</script>
+
+<!-- 카카오톡 공유 -->
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js" crossorigin="anonymous"></script>
+<script>
+    const SITE_URL = 'https://domiresol.github.io/wedding/';
+    Kakao.init('c48132b03e5e1d123285783940697dc2');
+
+    function shareKakao() {
+        Kakao.Share.sendDefault({
+            objectType: 'feed',
+            content: {
+                title: '다솔 ♡ 은경 결혼합니다.',
+                description: '2027년 5월 1일 토요일 오전 10시 30분\nMJ컨벤션 5층 파티오볼룸',
+                imageUrl: SITE_URL + 'images/main/cover.jpg',
+                link: { mobileWebUrl: SITE_URL, webUrl: SITE_URL }
+            },
+            buttons: [{
+                title: '일정 등록',
+                link: { mobileWebUrl: SITE_URL + '?cal=1', webUrl: SITE_URL + '?cal=1' }
+            }]
+        });
+    }
+
+    // 공유 카드의 '일정 등록' 버튼으로 진입 시 캘린더로 이동 (iOS: .ics, 그 외: 구글 캘린더)
+    if (new URLSearchParams(location.search).has('cal')) {
+        location.replace(/iPhone|iPad|iPod/i.test(navigator.userAgent)
+            ? SITE_URL + 'wedding.ics'
+            : 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+                + '&text=' + encodeURIComponent('다솔 ♡ 은경 결혼식')
+                + '&dates=20270501T013000Z/20270501T023000Z'
+                + '&location=' + encodeURIComponent('MJ컨벤션 5층 파티오볼룸, 경기 부천시 소사구 경인로 386'));
     }
 </script>
 

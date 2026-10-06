@@ -1,0 +1,13 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//domiresol//wedding//KO
+BEGIN:VEVENT
+UID:wedding-20270501@domiresol.github.io
+DTSTAMP:20261006T000000Z
+DTSTART:20270501T013000Z
+DTEND:20270501T023000Z
+SUMMARY:다솔 ♡ 은경 결혼식
+LOCATION:MJ컨벤션 5층 파티오볼룸\, 경기 부천시 소사구 경인로 386
+URL:https://domiresol.github.io/wedding/
+END:VEVENT
+END:VCALENDAR
