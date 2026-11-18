@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>슬라이딩 퍼즐</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../common.js"></script>
+<style>
+  #board .cell { font-size: clamp(1rem, 6vw, 1.6rem); background: var(--soft); }
+  #board .empty { visibility: hidden; }
+</style>
+</head>
+<body>
+<header><a id="home" href="../">목록</a><span>슬라이딩 퍼즐</span><button id="theme" type="button"></button></header>
+<main>
+  <form class="seg" id="opts" aria-label="크기">
+    <label><input type="radio" name="size" value="3" checked><span>3×3<small>쉬움</small></span></label>
+    <label><input type="radio" name="size" value="4"><span>4×4<small>보통</small></span></label>
+    <label><input type="radio" name="size" value="5"><span>5×5<small>어려움</small></span></label>
+  </form>
+  <div class="bar">
+    <span class="pill">이동 <b id="moves">0</b></span><span class="pill">시간 <b id="time">0:00</b></span>
+    <button id="new" type="button">새 게임</button>
+  </div>
+  <div class="board" id="board"></div>
+  <p id="msg"></p>
+  <p class="help">빈칸과 같은 줄에 있는 숫자를 누르면 빈칸 쪽으로 밀려요. 방향키로도 움직일 수 있어요.
+    1부터 순서대로 맞추면 성공! 제자리에 온 숫자는 초록색이 됩니다.</p>
+</main>
+<script>
+const clock = timer($('time'));
+let n, board, blank, moves, done;
+
+const neighbors = i => [i - n, i + n, i % n ? i - 1 : -1, (i + 1) % n ? i + 1 : -1].filter(p => p >= 0 && p < n * n);
+const solved = () => board.every((v, i) => v === (i + 1) % (n * n));
+function move(p) { board[blank] = board[p]; board[p] = 0; blank = p; }
+
+function newGame() {
+  n = +seg('size');
+  board = [...Array(n * n).keys()].map(i => (i + 1) % (n * n)); // 맞춘 상태: 1..n²-1, 마지막 칸이 빈칸(0)
+  blank = n * n - 1;
+  // 맞춘 상태에서 빈칸을 무작위로 움직여 섞으므로 항상 풀 수 있습니다.
+  let prev = -1;
+  for (let k = 0; k < n * n * 30 || solved(); k++) {
+    const opts = neighbors(blank).filter(p => p !== prev);
+    prev = blank;
+    move(opts[rand(opts.length)]);
+  }
+  moves = 0; done = false;
+  clock.reset();
+  $('moves').textContent = 0;
+  $('msg').textContent = '';
+  $('board').style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+  draw();
+}
+
+// 빈칸과 같은 줄의 칸을 누르면 그 사이 타일을 한꺼번에 밉니다.
+function slideTo(i) {
+  if (done || i === blank) return;
+  const sameRow = Math.floor(i / n) === Math.floor(blank / n);
+  if (!sameRow && i % n !== blank % n) return;
+  const step = (sameRow ? 1 : n) * Math.sign(i - blank);
+  while (blank !== i) { move(blank + step); moves++; }
+  clock.start();
+  $('moves').textContent = moves;
+  draw();
+  if (solved()) { done = true; clock.stop(); $('msg').textContent = `성공! ${moves}번 이동, ${clock.text}`; }
+}
+
+function draw() {
+  $('board').innerHTML = board.map((v, i) => v
+    ? `<button class="cell${v === i + 1 ? ' g' : ''}" data-i="${i}">${v}</button>`
+    : '<span class="cell empty"></span>').join('');
+}
+
+$('board').onclick = e => { const b = e.target.closest('[data-i]'); if (b) slideTo(+b.dataset.i); };
+document.addEventListener('keydown', e => {
+  const d = { ArrowUp: n, ArrowDown: -n, ArrowLeft: 1, ArrowRight: -1 }[e.key];
+  if (!d) return;
+  e.preventDefault();
+  if (neighbors(blank).includes(blank + d)) slideTo(blank + d);
+});
+$('opts').onchange = e => { e.target.blur(); newGame(); };
+$('new').onclick = newGame;
+newGame();
+</script>
+</body>
+</html>

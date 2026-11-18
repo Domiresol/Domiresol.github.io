@@ -1,0 +1,109 @@
+/* 미니 퍼즐 공통 스타일: 색상 값은 자모 맞추기(noravoca)와 같습니다. */
+:root {
+  color-scheme: light;
+  --bg: #f3f3f3; --panel: #fff; --text: #222; --muted: #777; --line: #ddd; --line-strong: #999;
+  --soft: #f3f3f3; --key: #fff; --accent: #ffe14d; --accent-line: #f5c400; --accent-soft: #fff7cc;
+  --accent-shadow: #e0c200; --g: #7ddc8c; --y: #ffe082; --b: #c8c8c8; --on-tile: #222; --on-accent: #222;
+  --cover: #c8c8c8; --bad: #ff8a80;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --bg: #121213; --panel: #1c1c1e; --text: #ececec; --muted: #9a9a9e; --line: #3a3a3c; --line-strong: #6e6e73;
+    --soft: #2a2a2d; --key: #3a3a3c; --accent-soft: #3b3416; --accent-shadow: #b89a00;
+    --g: #3f9e55; --y: #c9a227; --b: #4a4a4d; --on-tile: #fff; --cover: #4a4a4d; --bad: #b3403a;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121213; --panel: #1c1c1e; --text: #ececec; --muted: #9a9a9e; --line: #3a3a3c; --line-strong: #6e6e73;
+  --soft: #2a2a2d; --key: #3a3a3c; --accent-soft: #3b3416; --accent-shadow: #b89a00;
+  --g: #3f9e55; --y: #c9a227; --b: #4a4a4d; --on-tile: #fff; --cover: #4a4a4d; --bad: #b3403a;
+}
+:root[data-theme="darker"] {
+  color-scheme: dark;
+  --bg: #181818; --panel: #1f1f1f; --text: #cccccc; --muted: #9d9d9d; --line: #2b2b2b; --line-strong: #616161;
+  --soft: #2a2d2e; --key: #313131; --accent: #0078d4; --on-accent: #fff; --accent-line: #0078d4;
+  --accent-soft: #04395e; --accent-shadow: #005a9e;
+  --g: #2f6b3c; --y: #7d6a1f; --b: #262626; --on-tile: #e0e0e0; --cover: #3c3c3c; --bad: #8c2f2f;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text);
+       display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+button { font: inherit; color: inherit; cursor: pointer; }
+
+/* 상단: 목록으로 · 제목 · 테마 */
+header { width: 100%; max-width: 420px; padding: 12px 16px; background: var(--panel); font-weight: 700;
+         display: grid; grid-template-columns: 56px 1fr 56px; align-items: center; text-align: center; }
+#home { color: var(--text); text-decoration: none; font-size: .85rem; padding: 4px 0; border: 1px solid var(--line);
+        border-radius: 999px; }
+#theme { grid-column: 3; justify-self: end; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line);
+         border-radius: 50%; background: none; font-size: 1.05rem; }
+#home:hover, #theme:hover { background: var(--soft); }
+main { width: 100%; max-width: 420px; padding: 16px; background: var(--panel); }
+
+/* 옵션 선택: 라디오 버튼을 카드처럼 표시 */
+.seg { display: flex; gap: 8px; margin: 0; }
+.seg label { flex: 1; position: relative; }
+.seg input { position: absolute; opacity: 0; }
+.seg span { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px;
+            border: 2px solid var(--line); border-radius: 12px; font-weight: 700; cursor: pointer;
+            transition: border-color .15s, background .15s; }
+.seg small { font-weight: 400; font-size: .75rem; color: var(--muted); }
+.seg input:checked + span { border-color: var(--accent-line); background: var(--accent-soft); }
+.seg input:focus-visible + span { outline: 2px solid var(--text); outline-offset: 2px; }
+
+/* 상태 표시줄: 이동 수·시간 등과 버튼 */
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0; font-size: .9rem; color: var(--muted); }
+.bar .pill { padding: 5px 12px; border-radius: 999px; background: var(--soft); }
+.bar b { color: var(--text); font-variant-numeric: tabular-nums; }
+.bar button { padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); font-size: .9rem; }
+.bar button:first-of-type { margin-left: auto; }
+.bar button:hover { background: var(--soft); }
+.bar button[aria-pressed="true"] { border-color: var(--accent-line); background: var(--accent-soft); color: var(--text); }
+
+/* 게임 판과 칸 */
+.board { display: grid; gap: 6px; margin: 0 auto; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 10px;
+        border: 2px solid var(--line); background: var(--panel); color: var(--text); font-weight: 700; font-size: 1.4rem;
+        transition: background .15s, border-color .15s, transform .1s; }
+.g { background: var(--g) !important; border-color: var(--g) !important; color: var(--on-tile) !important; }
+.y { background: var(--y) !important; border-color: var(--y) !important; color: var(--on-tile) !important; }
+.b { background: var(--b) !important; border-color: var(--b) !important; color: var(--on-tile) !important; }
+
+#msg { min-height: 2.5em; margin: 12px 0; text-align: center; font-weight: 600; }
+#msg .share { margin-top: 8px; padding: 10px 14px; border: 0; border-radius: 8px; background: var(--accent);
+              color: var(--on-accent); font-weight: 700; }
+
+/* 매일 문제: 상단 번호 이동과 시작 화면 (자모 맞추기와 같은 모양) */
+header .mid { grid-column: 2; display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.nav { width: 32px; height: 32px; flex: none; display: flex; align-items: center; justify-content: center;
+       border-radius: 50%; color: var(--text); text-decoration: none; font-size: 1.4rem; line-height: 1; }
+.nav:hover { background: var(--soft); }
+.nav.off { visibility: hidden; }
+#date { display: block; font-size: .75rem; font-weight: 400; color: var(--muted); margin-top: 2px; }
+#entry { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 28px 0 8px; text-align: center; }
+#entry > .field, #entry > .seg, #entry > .start { width: 100%; max-width: 300px; }
+#entry h1 { margin: 4px 0 0; font-size: 1.6rem; letter-spacing: -.02em; }
+.date-pill { margin: 0; padding: 6px 14px; border-radius: 999px; background: var(--soft); font-size: .9rem; font-weight: 600; }
+.desc { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.5; }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: .8rem; font-weight: 600; color: var(--muted); text-align: left; }
+.field input { font: inherit; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 12px; color: var(--text);
+               background: var(--panel); border: 2px solid var(--line); border-radius: 12px; }
+.field input:focus { outline: none; border-color: var(--accent-line); }
+.start { padding: 14px; border: 0; border-radius: 12px; background: var(--accent); color: var(--on-accent); font-weight: 700;
+         font-size: 1.05rem; box-shadow: 0 3px 0 var(--accent-shadow); }
+.start:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--accent-shadow); }
+.start:disabled { opacity: .5; cursor: default; }
+.help { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--soft); color: var(--muted);
+        font-size: .85rem; line-height: 1.6; }
+
+/* 화면 키패드 (자모 맞추기 키보드와 같은 모양) */
+.kb { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.kb .row { display: flex; gap: 5px; justify-content: center; }
+.kb button { flex: 1; max-width: 64px; height: 50px; padding: 0; border: 0; border-radius: 8px; background: var(--key);
+             font-size: 1.1rem; box-shadow: inset 0 0 0 1px var(--line); }
+.kb button:disabled { opacity: .35; cursor: default; }
+.kb .wide { max-width: 100px; font-size: .95rem; }
+footer { font-size: .75rem; color: var(--muted); padding: 8px 16px 20px; text-align: center; }

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스도쿠</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../common.js"></script>
+<style>
+  #board { grid-template-columns: repeat(9, 1fr); gap: 0; border: 2px solid var(--line-strong); border-radius: 8px; overflow: hidden; }
+  #board .cell { border: 0; border-radius: 0; box-shadow: inset -1px -1px 0 var(--line); font-size: clamp(1rem, 5.5vw, 1.5rem);
+                 font-weight: 500; color: var(--accent-shadow); position: relative; }
+  #board .br { box-shadow: inset -2px -1px 0 var(--line-strong); }
+  #board .bb { box-shadow: inset -1px -2px 0 var(--line-strong); }
+  #board .br.bb { box-shadow: inset -2px -2px 0 var(--line-strong); }
+  #board .fixed { color: var(--text); font-weight: 700; }
+  #board .peer { background: var(--soft); }
+  #board .same { background: var(--accent-soft); }
+  #board .sel { background: var(--y); }
+  #board .bad { color: #e5484d; }
+  .memo { position: absolute; inset: 2px; display: grid; grid-template-columns: repeat(3, 1fr); font-size: .55em;
+          font-weight: 400; color: var(--muted); line-height: 1; }
+  .memo span { display: flex; align-items: center; justify-content: center; }
+  .kb small { display: block; font-size: .6rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <a id="home" href="../">목록</a>
+  <span class="mid" id="mid" hidden>
+    <a id="prev" class="nav" aria-label="이전 문제">‹</a>
+    <span><span id="title"></span><small id="date"></small></span>
+    <a id="next" class="nav" aria-label="다음 문제">›</a>
+  </span>
+  <button id="theme" type="button"></button>
+</header>
+<main>
+  <form id="entry" hidden></form>
+  <div id="game" hidden>
+    <div class="bar">
+      <span class="pill">남은 칸 <b id="left">0</b></span><span class="pill">시간 <b id="time">0:00</b></span>
+      <button id="memoBtn" type="button" aria-pressed="false">✏️ 메모</button>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="kb" id="pad"></div>
+    <p id="msg"></p>
+    <p class="help">가로줄·세로줄·굵은 3×3 칸 안에 1~9가 한 번씩만 들어가도록 채워요. 칸을 고르고 숫자를 누르세요.
+      겹치는 숫자는 빨간색으로 표시돼요. <b>✏️ 메모</b>를 켜면 후보 숫자를 작게 적을 수 있어요. 키보드: 숫자, 방향키, Backspace, M</p>
+  </div>
+</main>
+<script src="gen.js"></script>
+<script>
+daily({
+  id: 'sudoku', name: '스도쿠', desc: '1~9를 겹치지 않게 채우는 숫자 퍼즐이에요.',
+  levels: { easy: ['쉬움', '숫자 40개'], normal: ['보통', '숫자 32개'], hard: ['어려움', '숫자 26개 안팎'] },
+  run(r, level, finish) {
+    const { puzzle, solution } = sudokuGen(r, level);
+    const val = puzzle.slice(), memo = puzzle.map(() => new Set());
+    // 칸마다 같은 가로줄·세로줄·3×3 칸에 있는 다른 칸 목록
+    const peers = val.map((_, i) => val.map((_, j) => j).filter(j => j !== i &&
+      ((j / 9 | 0) === (i / 9 | 0) || j % 9 === i % 9 || sudokuBox(j) === sudokuBox(i))));
+    const clock = timer($('time'));
+    let sel = puzzle.indexOf(0), done = false;
+
+    $('pad').innerHTML = ['12345', '6789⌫'].map(row =>
+      `<div class="row">${[...row].map(k => `<button type="button" data-k="${k}">${k}${k === '⌫' ? '' : '<small></small>'}</button>`).join('')}</div>`).join('');
+
+    function input(k) {
+      if (done || sel < 0 || puzzle[sel]) return;
+      clock.start();
+      const memoMode = $('memoBtn').getAttribute('aria-pressed') === 'true';
+      if (k === '⌫') { val[sel] = 0; memo[sel].clear(); }
+      else if (memoMode) { if (!val[sel]) memo[sel].has(+k) ? memo[sel].delete(+k) : memo[sel].add(+k); }
+      else {
+        val[sel] = val[sel] === +k ? 0 : +k;
+        memo[sel].clear();
+        if (val[sel]) peers[sel].forEach(j => memo[j].delete(+k)); // 같은 줄·칸의 메모에서 지움
+      }
+      draw();
+      if (val.every((v, i) => v === solution[i])) {
+        done = true; clock.stop(); sel = -1; draw();
+        finish(clock.text);
+      }
+    }
+
+    function draw() {
+      const cur = val[sel];
+      $('left').textContent = val.filter(v => !v).length;
+      $('board').innerHTML = val.map((v, i) => {
+        const cls = ['cell'];
+        if (i % 9 === 2 || i % 9 === 5) cls.push('br');
+        if ((i / 9 | 0) === 2 || (i / 9 | 0) === 5) cls.push('bb');
+        if (puzzle[i]) cls.push('fixed');
+        if (i === sel) cls.push('sel');
+        else if (cur && v === cur) cls.push('same');
+        else if (sel >= 0 && peers[sel].includes(i)) cls.push('peer');
+        if (v && peers[i].some(j => val[j] === v)) cls.push('bad');
+        const body = v || (memo[i].size ? `<span class="memo">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d =>
+          `<span>${memo[i].has(d) ? d : ''}</span>`).join('')}</span>` : '');
+        return `<div class="${cls.join(' ')}" data-i="${i}">${body}</div>`;
+      }).join('');
+      // 숫자별 남은 개수, 다 쓴 숫자는 흐리게
+      $('pad').querySelectorAll('[data-k]').forEach(b => {
+        if (b.dataset.k === '⌫') return;
+        const left = 9 - val.filter(v => v === +b.dataset.k).length;
+        b.querySelector('small').textContent = left > 0 ? left : '';
+        b.disabled = left <= 0 || done;
+      });
+    }
+
+    $('board').onclick = e => { const c = e.target.closest('[data-i]'); if (c && !done) { sel = +c.dataset.i; draw(); } };
+    $('pad').onclick = e => { const b = e.target.closest('[data-k]'); if (b) { b.blur(); input(b.dataset.k); } };
+    $('memoBtn').onclick = e => {
+      e.currentTarget.setAttribute('aria-pressed', e.currentTarget.getAttribute('aria-pressed') !== 'true');
+      e.currentTarget.blur();
+    };
+    document.addEventListener('keydown', e => {
+      if (e.ctrlKey || e.metaKey || e.altKey || done) return;
+      const mv = { ArrowUp: -9, ArrowDown: 9, ArrowLeft: -1, ArrowRight: 1 }[e.key];
+      if (mv) {
+        e.preventDefault();
+        const nx = (sel < 0 ? 0 : sel) + mv;
+        if (nx >= 0 && nx < 81 && (Math.abs(mv) === 9 || (nx / 9 | 0) === (sel / 9 | 0))) { sel = nx; draw(); }
+      } else if (/^[1-9]$/.test(e.key)) input(e.key);
+      else if (['Backspace', 'Delete', '0'].includes(e.key)) input('⌫');
+      else if (e.key === 'm' || e.key === 'M') $('memoBtn').click();
+    });
+    draw();
+  },
+});
+</script>
+</body>
+</html>

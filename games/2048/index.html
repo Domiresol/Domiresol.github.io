@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2048</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../common.js"></script>
+<style>
+  #board { grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 8px; border-radius: 14px; background: var(--line);
+           touch-action: none; }
+  #board .cell { border: 0; background: var(--soft); font-size: clamp(1.1rem, 7vw, 1.8rem); }
+  /* 숫자가 커질수록 강조색 → 초록색으로 진해짐 (--p는 칸마다 지정) */
+  #board .t { background: color-mix(in srgb, var(--accent) var(--p), var(--soft)); }
+  #board .hi { background: color-mix(in srgb, var(--g) var(--p), var(--accent)); color: var(--on-tile); }
+  #board .d4 { font-size: clamp(.9rem, 5vw, 1.3rem); }
+  #board .pop { animation: pop .15s; }
+  @keyframes pop { from { transform: scale(.5); } }
+</style>
+</head>
+<body>
+<header><a id="home" href="../">목록</a><span>2048</span><button id="theme" type="button"></button></header>
+<main>
+  <div class="bar">
+    <span class="pill">점수 <b id="score">0</b></span><span class="pill">최고 <b id="best">0</b></span>
+    <button id="new" type="button">새 게임</button>
+  </div>
+  <div class="board" id="board"></div>
+  <p id="msg"></p>
+  <p class="help">방향키(또는 WASD)나 화면을 밀어서 모든 타일을 한쪽으로 모아요.
+    같은 숫자끼리 부딪히면 합쳐집니다. 2048을 만들면 성공! 그 뒤로도 계속할 수 있어요.</p>
+</main>
+<script>
+// 방향별 줄 목록: 각 줄의 첫 칸이 타일이 몰리는 쪽입니다.
+const R = [0, 1, 2, 3];
+const LINES = {
+  left: R.map(r => R.map(c => r * 4 + c)),
+  right: R.map(r => R.map(c => r * 4 + 3 - c)),
+  up: R.map(c => R.map(r => r * 4 + c)),
+  down: R.map(c => R.map(r => (3 - r) * 4 + c)),
+};
+let b, score, best = 0, over, won;
+try { best = +localStorage.getItem('2048-best') || 0; } catch {}
+
+function add() {
+  const empty = b.flatMap((v, i) => v ? [] : [i]);
+  const i = empty[rand(empty.length)];
+  b[i] = Math.random() < .9 ? 2 : 4;
+  return i;
+}
+
+function newGame() {
+  b = Array(16).fill(0);
+  score = 0; over = won = false;
+  add(); add();
+  $('msg').textContent = '';
+  draw();
+}
+
+function slide(dir) {
+  if (over) return;
+  let moved = false;
+  for (const line of LINES[dir]) {
+    const vals = line.map(i => b[i]).filter(Boolean), out = [];
+    for (let k = 0; k < vals.length; k++) {
+      if (vals[k] === vals[k + 1]) { out.push(vals[k] * 2); score += vals[k] * 2; k++; }
+      else out.push(vals[k]);
+    }
+    line.forEach((i, k) => { const v = out[k] || 0; if (b[i] !== v) moved = true; b[i] = v; });
+  }
+  if (!moved) return;
+  const fresh = add();
+  if (score > best) { best = score; try { localStorage.setItem('2048-best', best); } catch {} }
+  draw(fresh);
+  if (!won && b.includes(2048)) { won = true; $('msg').textContent = '2048 달성! 계속 이어서 할 수 있어요.'; }
+  if (!b.some((v, i) => !v || (i % 4 < 3 && v === b[i + 1]) || (i < 12 && v === b[i + 4]))) {
+    over = true;
+    $('msg').textContent = `더 움직일 수 없어요. 점수 ${score}`;
+  }
+}
+
+function draw(fresh) {
+  $('score').textContent = score;
+  $('best').textContent = best;
+  $('board').innerHTML = b.map((v, i) => {
+    if (!v) return '<div class="cell"></div>';
+    const lv = Math.log2(v); // 2 → 1, 2048 → 11
+    const cls = (lv <= 6 ? 't' : 'hi') + (v >= 1000 ? ' d4' : '') + (i === fresh ? ' pop' : '');
+    const p = lv <= 6 ? 10 + lv * 15 : Math.min(100, (lv - 6) * 20);
+    return `<div class="cell ${cls}" style="--p:${p}%">${v}</div>`;
+  }).join('');
+}
+
+const KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down',
+               KeyA: 'left', KeyD: 'right', KeyW: 'up', KeyS: 'down' };
+document.addEventListener('keydown', e => {
+  const dir = KEYS[e.key] || KEYS[e.code];
+  if (!dir || e.ctrlKey || e.metaKey || e.altKey) return;
+  e.preventDefault();
+  slide(dir);
+});
+// 밀기: 30px 이상 움직였을 때 더 많이 움직인 축으로 판단
+let sx = 0, sy = 0;
+$('board').addEventListener('pointerdown', e => { sx = e.clientX; sy = e.clientY; });
+$('board').addEventListener('pointerup', e => {
+  const dx = e.clientX - sx, dy = e.clientY - sy;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 30) return;
+  slide(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+});
+$('new').onclick = e => { e.target.blur(); newGame(); };
+newGame();
+</script>
+</body>
+</html>

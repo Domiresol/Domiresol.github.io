@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>숫자야구</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../common.js"></script>
+<style>
+  #cur { grid-template-columns: repeat(var(--n), 1fr); max-width: calc(var(--n) * 60px); }
+  #cur .cell { border-color: var(--line-strong); }
+  #log { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  #log li { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 10px; background: var(--soft); }
+  #log .no { width: 1.6em; color: var(--muted); font-size: .8rem; }
+  #log .digits { font-weight: 700; font-size: 1.15rem; letter-spacing: .3em; font-variant-numeric: tabular-nums; }
+  #log .res { margin-left: auto; display: flex; gap: 4px; }
+  .tag { padding: 2px 10px; border-radius: 999px; font-size: .85rem; font-weight: 700; }
+</style>
+</head>
+<body>
+<header><a id="home" href="../">목록</a><span>숫자야구</span><button id="theme" type="button"></button></header>
+<main>
+  <form class="seg" id="opts" aria-label="자릿수">
+    <label><input type="radio" name="len" value="3" checked><span>3자리<small>쉬움</small></span></label>
+    <label><input type="radio" name="len" value="4"><span>4자리<small>어려움</small></span></label>
+  </form>
+  <div class="bar">
+    <span class="pill">남은 기회 <b id="left">0</b></span>
+    <button id="new" type="button">새 게임</button>
+  </div>
+  <div class="board" id="cur"></div>
+  <div class="kb" id="kb"></div>
+  <ol id="log"></ol>
+  <p id="msg"></p>
+  <p class="help">서로 다른 숫자로 된 비밀 번호를 맞혀요. 숫자와 자리가 모두 맞으면 <b>S</b>(스트라이크),
+    숫자만 맞고 자리가 다르면 <b>B</b>(볼), 하나도 없으면 <b>OUT</b>이에요. OUT이 나온 숫자는 키패드에서 회색이 됩니다.</p>
+</main>
+<script>
+const TRIES = 10;
+let len, secret, cur, history, done;
+
+// 키패드: 숫자 0~9, 지우기, 입력
+$('kb').innerHTML = ['12345', '67890', ['⌫', '입력']].map(r =>
+  `<div class="row">${[...r].map(k => `<button type="button" class="${k.length > 1 || k === '⌫' ? 'wide' : ''}" data-k="${k}">${k}</button>`).join('')}</div>`
+).join('');
+const keys = Object.fromEntries([...$('kb').querySelectorAll('button')].map(b => [b.dataset.k, b]));
+
+function newGame() {
+  len = +seg('len');
+  secret = shuffle([...'0123456789']).slice(0, len);
+  cur = []; history = []; done = false;
+  Object.values(keys).forEach(k => k.classList.remove('b'));
+  $('cur').style.setProperty('--n', len);
+  $('log').innerHTML = '';
+  $('msg').textContent = '';
+  draw();
+}
+
+function press(k) {
+  if (done) return;
+  if (k === '⌫') cur.pop();
+  else if (k === '입력') return submit();
+  else if (cur.length < len && !cur.includes(k)) cur.push(k);
+  draw();
+}
+
+function submit() {
+  if (cur.length < len) { $('msg').textContent = `숫자 ${len}개를 채워 주세요.`; return; }
+  const s = cur.filter((d, i) => d === secret[i]).length;
+  const b = cur.filter(d => secret.includes(d)).length - s;
+  history.push({ guess: cur.join(''), s, b });
+  if (!s && !b) cur.forEach(d => keys[d].classList.add('b'));
+  const res = s === len ? `<span class="tag g">홈런</span>`
+    : !s && !b ? '<span class="tag b">OUT</span>'
+    : (s ? `<span class="tag g">${s}S</span>` : '') + (b ? `<span class="tag y">${b}B</span>` : '');
+  $('log').insertAdjacentHTML('afterbegin',
+    `<li><span class="no">${history.length}</span><span class="digits">${cur.join('')}</span><span class="res">${res}</span></li>`);
+  cur = [];
+  if (s === len) { done = true; $('msg').textContent = `정답! ${history.length}번 만에 맞혔어요.`; }
+  else if (history.length === TRIES) { done = true; $('msg').textContent = `아쉽네요. 정답은 ${secret.join('')}`; }
+  else $('msg').textContent = '';
+  draw();
+}
+
+function draw() {
+  $('left').textContent = TRIES - history.length;
+  $('cur').innerHTML = Array.from({ length: len }, (_, i) => `<div class="cell">${cur[i] ?? ''}</div>`).join('');
+  for (const d of '0123456789') keys[d].disabled = done || cur.includes(d);
+}
+
+$('kb').onclick = e => { const b = e.target.closest('[data-k]'); if (b) { b.blur(); press(b.dataset.k); } };
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (/^[0-9]$/.test(e.key)) press(e.key);
+  else if (e.key === 'Backspace') press('⌫');
+  else if (e.key === 'Enter') { e.preventDefault(); press('입력'); }
+});
+$('opts').onchange = e => { e.target.blur(); newGame(); };
+$('new').onclick = e => { e.target.blur(); newGame(); };
+newGame();
+</script>
+</body>
+</html>

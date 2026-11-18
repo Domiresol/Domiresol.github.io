@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>파이프 연결</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../common.js"></script>
+<style>
+  #board { gap: 0; border: 2px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--soft); }
+  #board .cell { border: 0; border-radius: 0; background: none; box-shadow: inset 0 0 0 .5px var(--line); }
+  #board svg { width: 100%; height: 100%; display: block; transition: transform .12s; }
+  #board path, #board circle { stroke: var(--line-strong); fill: var(--line-strong); }
+  #board .wet path, #board .wet circle { stroke: var(--accent-line); fill: var(--accent-line); }
+  #board .src circle.big { fill: var(--accent); stroke: var(--accent-shadow); stroke-width: 6; }
+  #board.solved .cell { background: var(--accent-soft); }
+</style>
+</head>
+<body>
+<header>
+  <a id="home" href="../">목록</a>
+  <span class="mid" id="mid" hidden>
+    <a id="prev" class="nav" aria-label="이전 문제">‹</a>
+    <span><span id="title"></span><small id="date"></small></span>
+    <a id="next" class="nav" aria-label="다음 문제">›</a>
+  </span>
+  <button id="theme" type="button"></button>
+</header>
+<main>
+  <form id="entry" hidden></form>
+  <div id="game" hidden>
+    <div class="bar">
+      <span class="pill">회전 <b id="moves">0</b></span><span class="pill">연결 <b id="wet">0</b></span>
+      <span class="pill">시간 <b id="time">0:00</b></span>
+    </div>
+    <div class="board" id="board"></div>
+    <p id="msg"></p>
+    <p class="help">조각을 누르면 시계 방향으로 돌아가요(오른쪽 클릭은 반대 방향). 가운데 수원에서 물이 흘러
+      모든 칸에 닿고, 끊기거나 새는 곳이 없으면 성공! 물이 닿은 파이프는 색이 바뀝니다.</p>
+  </div>
+</main>
+<script src="gen.js"></script>
+<script>
+daily({
+  id: 'pipes', name: '파이프 연결', desc: '파이프 조각을 돌려 수원에서 모든 칸으로 물길을 이어요.',
+  levels: { easy: ['쉬움', '5×5'], normal: ['보통', '7×7'], hard: ['어려움', '9×9'] },
+  run(r, level, finish) {
+    const { n, src, tiles } = pipesGen(r, level);
+    const clock = timer($('time'));
+    let moves = 0, done = false;
+    $('board').style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+    const ARM = ['M50 50V-5', 'M50 50H105', 'M50 50V105', 'M50 50H-5'];
+
+    function draw() {
+      const { wet, solved } = pipesFlow(n, tiles, src);
+      $('wet').textContent = `${wet.size}/${n * n}`;
+      $('board').classList.toggle('solved', solved);
+      $('board').innerHTML = tiles.map((m, i) => {
+        const arms = ARM.filter((_, d) => m >> d & 1).map(p => `<path d="${p}" stroke-width="22"/>`).join('');
+        const end = [1, 2, 4, 8].includes(m) ? '<circle r="17" cx="50" cy="50"/>' : '<circle r="11" cx="50" cy="50"/>';
+        const big = i === src ? '<circle class="big" r="26" cx="50" cy="50"/>' : '';
+        return `<button class="cell${wet.has(i) ? ' wet' : ''}${i === src ? ' src' : ''}" data-i="${i}" aria-label="파이프 조각">` +
+          `<svg viewBox="0 0 100 100" aria-hidden="true">${arms}${end}${big}</svg></button>`;
+      }).join('');
+      return solved;
+    }
+
+    function turn(i, times) {
+      if (done) return;
+      for (let k = 0; k < times; k++) tiles[i] = pipeRotate(tiles[i]);
+      moves++;
+      clock.start();
+      $('moves').textContent = moves;
+      if (draw()) { done = true; clock.stop(); finish(`${moves}번 회전 · ${clock.text}`); }
+    }
+
+    $('board').onclick = e => { const c = e.target.closest('[data-i]'); if (c) turn(+c.dataset.i, 1); };
+    $('board').oncontextmenu = e => {
+      const c = e.target.closest('[data-i]');
+      if (!c) return;
+      e.preventDefault();
+      turn(+c.dataset.i, 3);
+    };
+    draw();
+  },
+});
+</script>
+</body>
+</html>

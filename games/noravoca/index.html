@@ -10,10 +10,10 @@
     color-scheme: light;
     --bg: #f3f3f3; --panel: #fff; --text: #222; --muted: #777; --line: #ddd; --line-strong: #999;
     --soft: #f3f3f3; --key: #fff; --accent: #ffe14d; --accent-line: #f5c400; --accent-soft: #fff7cc;
-    --accent-shadow: #e0c200; --g: #7ddc8c; --y: #ffe082; --b: #c8c8c8; --on-tile: #222;
+    --accent-shadow: #e0c200; --g: #7ddc8c; --y: #ffe082; --b: #c8c8c8; --on-tile: #222; --on-accent: #222;
   }
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
+    :root:not([data-theme]) {
       color-scheme: dark;
       --bg: #121213; --panel: #1c1c1e; --text: #ececec; --muted: #9a9a9e; --line: #3a3a3c; --line-strong: #6e6e73;
       --soft: #2a2a2d; --key: #3a3a3c; --accent-soft: #3b3416; --accent-shadow: #b89a00;
@@ -25,6 +25,14 @@
     --bg: #121213; --panel: #1c1c1e; --text: #ececec; --muted: #9a9a9e; --line: #3a3a3c; --line-strong: #6e6e73;
     --soft: #2a2a2d; --key: #3a3a3c; --accent-soft: #3b3416; --accent-shadow: #b89a00;
     --g: #3f9e55; --y: #c9a227; --b: #4a4a4d; --on-tile: #fff;
+  }
+  /* 더 다크: VS Code 기본 다크(Dark Modern) 톤. 강조는 파란색, 판정 색은 채도를 낮춤 */
+  :root[data-theme="darker"] {
+    color-scheme: dark;
+    --bg: #181818; --panel: #1f1f1f; --text: #cccccc; --muted: #9d9d9d; --line: #2b2b2b; --line-strong: #616161;
+    --soft: #2a2d2e; --key: #313131; --accent: #0078d4; --on-accent: #fff; --accent-line: #0078d4;
+    --accent-soft: #04395e; --accent-shadow: #005a9e;
+    --g: #2f6b3c; --y: #7d6a1f; --b: #262626; --on-tile: #e0e0e0;
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
@@ -46,7 +54,7 @@
   input, button { font: inherit; color: inherit; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--line); }
   input { background: var(--panel); }
   a { color: inherit; }
-  #msg button { background: var(--accent); color: #222; border: 0; font-weight: 700; cursor: pointer; }
+  #msg button { background: var(--accent); color: var(--on-accent); border: 0; font-weight: 700; cursor: pointer; }
 
   /* 시작 화면 */
   #entry { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 28px 0 8px; text-align: center; }
@@ -63,7 +71,7 @@
   .field { display: flex; flex-direction: column; gap: 6px; font-size: .8rem; font-weight: 600; color: var(--muted); text-align: left; }
   .field input { font-size: 1.4rem; font-weight: 700; text-align: center; padding: 12px; border: 2px solid var(--line); border-radius: 12px; }
   .field input:focus { outline: none; border-color: var(--accent-line); }
-  .start { padding: 14px; border: 0; border-radius: 12px; background: var(--accent); color: #222; font-weight: 700; font-size: 1.05rem;
+  .start { padding: 14px; border: 0; border-radius: 12px; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 1.05rem;
            cursor: pointer; box-shadow: 0 3px 0 var(--accent-shadow); }
   .start:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--accent-shadow); }
   .legend { list-style: none; margin: 6px 0 0; padding: 14px; border-radius: 12px; background: var(--soft);
@@ -101,7 +109,7 @@
 </style>
 <script>
   // 저장된 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장이 막힌 환경이면 시스템 설정을 따릅니다.
-  try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch {}
+  try { const t = localStorage.getItem('theme'); if (['light', 'dark', 'darker'].includes(t)) document.documentElement.dataset.theme = t; } catch {}
 </script>
 </head>
 <body>
@@ -159,15 +167,20 @@ const num = parseInt(params.get('n'), 10);
 const level = params.get('d') === 'hard' ? 'hard' : 'easy'; // 없거나 잘못되면 쉬움
 const $ = id => document.getElementById(id);
 
-// 테마 토글: 지금이 다크면 해, 라이트면 달 아이콘을 보여 주고 누르면 반대로 전환
+// 테마 토글: 라이트 → 다크 → 더 다크 순으로 돌고, 아이콘은 현재 테마를 표시
 const root = document.documentElement;
-const isDark = () => (root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+const THEMES = { light: ['☀️', '라이트'], dark: ['🌙', '다크'], darker: ['🌑', '더 다크'] };
+const ORDER = Object.keys(THEMES);
+const theme = () => THEMES[root.dataset.theme] ? root.dataset.theme
+  : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+const nextTheme = () => ORDER[(ORDER.indexOf(theme()) + 1) % ORDER.length];
 function paintTheme() {
-  $('theme').textContent = isDark() ? '☀️' : '🌙';
-  $('theme').setAttribute('aria-label', isDark() ? '라이트 모드로 전환' : '다크 모드로 전환');
+  $('theme').textContent = THEMES[theme()][0];
+  $('theme').title = `${THEMES[theme()][1]} 모드 (누르면 ${THEMES[nextTheme()][1]} 모드)`;
+  $('theme').setAttribute('aria-label', $('theme').title);
 }
 $('theme').onclick = e => {
-  root.dataset.theme = isDark() ? 'light' : 'dark';
+  root.dataset.theme = nextTheme();
   try { localStorage.setItem('theme', root.dataset.theme); } catch {}
   paintTheme();
   e.currentTarget.blur();

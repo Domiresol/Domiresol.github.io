@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>지뢰찾기</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../common.js"></script>
+<style>
+  #board { gap: 2px; }
+  #board .cell { border: 0; border-radius: 4px; background: var(--cover); font-size: var(--fs); }
+  #board .open { background: var(--soft); cursor: default; }
+  #board .boom { background: var(--bad); }
+  .n1 { color: #3b82f6 !important; } .n2 { color: #22a35a !important; } .n3 { color: #e5484d !important; }
+  .n4 { color: #8b5cf6 !important; } .n5 { color: #d97706 !important; } .n6 { color: #0891b2 !important; }
+  .n7, .n8 { color: var(--muted) !important; }
+</style>
+</head>
+<body>
+<header><a id="home" href="../">목록</a><span>지뢰찾기</span><button id="theme" type="button"></button></header>
+<main>
+  <form class="seg" id="opts" aria-label="난이도">
+    <label><input type="radio" name="level" value="easy" checked><span>초급<small>9×9 · 10개</small></span></label>
+    <label><input type="radio" name="level" value="mid"><span>중급<small>12×12 · 24개</small></span></label>
+    <label><input type="radio" name="level" value="hard"><span>고급<small>16×16 · 40개</small></span></label>
+  </form>
+  <div class="bar">
+    <span class="pill">💣 <b id="left">0</b></span><span class="pill">시간 <b id="time">0:00</b></span>
+    <button id="flagMode" type="button" aria-pressed="false">🚩 깃발</button>
+    <button id="new" type="button">새 게임</button>
+  </div>
+  <div class="board" id="board"></div>
+  <p id="msg"></p>
+  <p class="help">숫자는 주변 8칸에 있는 지뢰 수예요. 지뢰가 아닌 칸을 모두 열면 성공!
+    오른쪽 클릭이나 <b>🚩 깃발</b> 버튼으로 깃발을 꽂아요. 첫 칸은 항상 안전하고,
+    깃발 수가 맞는 숫자를 누르면 주변 칸이 한꺼번에 열립니다.</p>
+</main>
+<script>
+const LEVELS = { easy: [9, 10, '1.2rem'], mid: [12, 24, '1rem'], hard: [16, 40, '.8rem'] };
+const clock = timer($('time'));
+let W, M, mine, cnt, open, flag, opened, started, done, boom;
+
+const nbrs = i => {
+  const r = Math.floor(i / W), c = i % W, out = [];
+  for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+    const y = r + dr, x = c + dc;
+    if ((dr || dc) && y >= 0 && y < W && x >= 0 && x < W) out.push(y * W + x);
+  }
+  return out;
+};
+
+function newGame() {
+  const [size, mines, fs] = LEVELS[seg('level')];
+  W = size; M = mines;
+  mine = Array(W * W).fill(false); open = Array(W * W).fill(false); flag = Array(W * W).fill(false);
+  opened = 0; started = done = false; boom = -1;
+  clock.reset();
+  $('msg').textContent = '';
+  Object.assign($('board').style, { gridTemplateColumns: `repeat(${W}, 1fr)` });
+  $('board').style.setProperty('--fs', fs);
+  draw();
+}
+
+// 첫 클릭 칸과 그 주변에는 지뢰를 두지 않아 처음에 넓게 열립니다.
+function place(safe) {
+  const banned = new Set([safe, ...nbrs(safe)]);
+  shuffle([...mine.keys()].filter(i => !banned.has(i))).slice(0, M).forEach(i => mine[i] = true);
+  cnt = mine.map((_, i) => nbrs(i).filter(j => mine[j]).length);
+}
+
+function openCell(i) {
+  if (done || open[i] || flag[i]) return;
+  if (mine[i]) { boom = i; done = true; clock.stop(); $('msg').textContent = '펑! 지뢰를 밟았어요.'; return; }
+  const stack = [i];
+  while (stack.length) {
+    const j = stack.pop();
+    if (open[j] || flag[j]) continue;
+    open[j] = true; opened++;
+    if (!cnt[j]) stack.push(...nbrs(j));
+  }
+}
+
+function click(i, asFlag) {
+  if (done) return;
+  if (asFlag && !open[i]) { flag[i] = !flag[i]; return draw(); }
+  if (!started) { started = true; place(i); clock.start(); }
+  if (open[i]) {
+    // 주변 깃발 수가 숫자와 같으면 나머지 주변 칸을 모두 엽니다.
+    if (cnt[i] && nbrs(i).filter(j => flag[j]).length === cnt[i]) nbrs(i).forEach(openCell);
+  } else openCell(i);
+  if (!done && opened === W * W - M) {
+    done = true; clock.stop();
+    mine.forEach((m, j) => { if (m) flag[j] = true; });
+    $('msg').textContent = `성공! ${clock.text}`;
+  }
+  draw();
+}
+
+function draw() {
+  $('left').textContent = M - flag.filter(Boolean).length;
+  $('board').innerHTML = mine.map((m, i) => {
+    if (open[i]) return `<div class="cell open n${cnt[i]}">${cnt[i] || ''}</div>`;
+    let face = flag[i] ? '🚩' : '';
+    if (done && boom >= 0) face = flag[i] ? (m ? '🚩' : '❌') : m ? '💣' : '';
+    return `<button class="cell${i === boom ? ' boom' : ''}">${face}</button>`;
+  }).join('');
+}
+
+const flagMode = () => $('flagMode').getAttribute('aria-pressed') === 'true';
+$('flagMode').onclick = () => $('flagMode').setAttribute('aria-pressed', !flagMode());
+// 칸 번호는 판 안의 순서로 구합니다. 깃발 모드나 오른쪽 클릭으로 열린 숫자를 누르면 주변 열기로 동작합니다.
+const idx = el => [...$('board').children].indexOf(el);
+$('board').onclick = e => { const b = e.target.closest('.cell'); if (b) click(idx(b), flagMode()); };
+$('board').oncontextmenu = e => {
+  const b = e.target.closest('.cell');
+  if (!b) return;
+  e.preventDefault();
+  click(idx(b), true);
+};
+$('opts').onchange = e => { e.target.blur(); newGame(); };
+$('new').onclick = newGame;
+newGame();
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>불 끄기</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../common.js"></script>
+<style>
+  #board .cell { background: var(--soft); }
+  #board .on { background: var(--accent); border-color: var(--accent-line); box-shadow: 0 0 14px var(--accent); }
+  #board .cell:active { transform: scale(.94); }
+</style>
+</head>
+<body>
+<header><a id="home" href="../">목록</a><span>불 끄기</span><button id="theme" type="button"></button></header>
+<main>
+  <form class="seg" id="opts" aria-label="크기">
+    <label><input type="radio" name="size" value="3"><span>3×3<small>쉬움</small></span></label>
+    <label><input type="radio" name="size" value="4"><span>4×4<small>보통</small></span></label>
+    <label><input type="radio" name="size" value="5" checked><span>5×5<small>기본</small></span></label>
+  </form>
+  <div class="bar">
+    <span class="pill">누른 횟수 <b id="moves">0</b></span><span class="pill">시간 <b id="time">0:00</b></span>
+    <button id="new" type="button">새 게임</button>
+  </div>
+  <div class="board" id="board"></div>
+  <p id="msg"></p>
+  <p class="help">칸을 누르면 그 칸과 위·아래·왼쪽·오른쪽 칸의 불이 함께 켜지거나 꺼져요.
+    모든 불을 끄면 성공! 같은 칸을 두 번 누르면 원래대로 돌아옵니다.</p>
+</main>
+<script>
+const clock = timer($('time'));
+let n, lights, moves, done;
+
+function toggle(i) {
+  const r = Math.floor(i / n), c = i % n;
+  [[r, c], [r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].forEach(([y, x]) => {
+    if (y >= 0 && y < n && x >= 0 && x < n) lights[y * n + x] = !lights[y * n + x];
+  });
+}
+
+function newGame() {
+  n = +seg('size');
+  lights = Array(n * n).fill(false);
+  // 꺼진 판에서 무작위로 눌러 만들므로 항상 풀 수 있습니다.
+  do { for (let i = 0; i < n * n; i++) if (Math.random() < .5) toggle(i); } while (!lights.includes(true));
+  moves = 0; done = false;
+  clock.reset();
+  $('moves').textContent = 0;
+  $('msg').textContent = '';
+  $('board').style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+  draw();
+}
+
+function press(i) {
+  if (done) return;
+  toggle(i);
+  moves++;
+  clock.start();
+  $('moves').textContent = moves;
+  draw();
+  if (!lights.includes(true)) { done = true; clock.stop(); $('msg').textContent = `성공! ${moves}번 눌렀어요, ${clock.text}`; }
+}
+
+function draw() {
+  $('board').innerHTML = lights.map((on, i) =>
+    `<button class="cell${on ? ' on' : ''}" data-i="${i}" aria-label="${on ? '켜짐' : '꺼짐'}"></button>`).join('');
+}
+
+$('board').onclick = e => { const b = e.target.closest('[data-i]'); if (b) press(+b.dataset.i); };
+$('opts').onchange = e => { e.target.blur(); newGame(); };
+$('new').onclick = newGame;
+newGame();
+</script>
+</body>
+</html>

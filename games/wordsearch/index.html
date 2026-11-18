@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>단어 찾기</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../common.js"></script>
+<style>
+  #board { gap: 4px; touch-action: none; }
+  #board .cell { border-radius: 8px; font-size: var(--fs); background: var(--soft); border-color: var(--soft); }
+  #words { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  #words li { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); font-weight: 700; }
+  #words .found { text-decoration: line-through; }
+</style>
+</head>
+<body>
+<header>
+  <a id="home" href="../">목록</a>
+  <span class="mid" id="mid" hidden>
+    <a id="prev" class="nav" aria-label="이전 문제">‹</a>
+    <span><span id="title"></span><small id="date"></small></span>
+    <a id="next" class="nav" aria-label="다음 문제">›</a>
+  </span>
+  <button id="theme" type="button"></button>
+</header>
+<main>
+  <form id="entry" hidden></form>
+  <div id="game" hidden>
+    <div class="bar"><span class="pill">찾은 단어 <b id="count">0</b></span><span class="pill">시간 <b id="time">0:00</b></span></div>
+    <div class="board" id="board"></div>
+    <ul id="words"></ul>
+    <p id="msg"></p>
+    <p class="help">격자에 숨은 단어를 모두 찾아요. 첫 글자에서 끝 글자까지 손가락이나 마우스로 끌거나,
+      첫 글자와 끝 글자를 차례로 누르세요. 어려움에서는 거꾸로 놓인 단어도 있어요.</p>
+  </div>
+</main>
+<script src="../words_common.js"></script>
+<script src="gen.js"></script>
+<script>
+daily({
+  id: 'wordsearch', name: '단어 찾기', desc: '글자 격자 속에 숨은 낱말을 모두 찾아요.',
+  levels: { easy: ['쉬움', '6×6 · 5단어'], normal: ['보통', '8×8 · 대각선'], hard: ['어려움', '10×10 · 거꾸로'] },
+  run(r, level, finish) {
+    const { n, words, grid } = wordsGen(r, level, COMMON);
+    const clock = timer($('time')), found = new Set();
+    let start = -1, anchor = -1, preview = [];
+    $('board').style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+    $('board').style.setProperty('--fs', `clamp(.9rem, ${36 / n}vw, 1.4rem)`);
+
+    function draw() {
+      const hit = new Set(words.filter(w => found.has(w.word)).flatMap(w => w.cells));
+      $('board').innerHTML = grid.map((ch, i) =>
+        `<div class="cell${hit.has(i) ? ' g' : preview.includes(i) || i === anchor ? ' y' : ''}">${ch}</div>`).join('');
+      $('words').innerHTML = words.map(w => `<li class="${found.has(w.word) ? 'found g' : ''}">${w.word}</li>`).join('');
+      $('count').textContent = `${found.size}/${words.length}`;
+    }
+
+    // 판 위 좌표로 칸 번호 계산 (끄는 도중 칸 사이 틈에 있어도 끊기지 않게)
+    function cellAt(e) {
+      const b = $('board').getBoundingClientRect();
+      const x = Math.floor((e.clientX - b.left) / b.width * n), y = Math.floor((e.clientY - b.top) / b.height * n);
+      return x >= 0 && x < n && y >= 0 && y < n ? y * n + x : -1;
+    }
+
+    function pick(a, b) {
+      const line = wordsLine(n, a, b) || [];
+      const key = line.join(), rev = [...line].reverse().join();
+      const w = words.find(w => !found.has(w.word) && (w.cells.join() === key || w.cells.join() === rev));
+      if (w) found.add(w.word);
+      preview = []; anchor = -1;
+      draw();
+      if (found.size === words.length) { clock.stop(); finish(clock.text); }
+    }
+
+    $('board').onpointerdown = e => {
+      if (found.size === words.length) return;
+      const c = cellAt(e);
+      if (c < 0) return;
+      clock.start();
+      if (anchor >= 0 && anchor !== c) return pick(anchor, c); // 두 번째 누름
+      $('board').setPointerCapture(e.pointerId);
+      start = c; preview = [c]; draw();
+    };
+    $('board').onpointermove = e => {
+      if (start < 0) return;
+      const c = cellAt(e);
+      const line = c >= 0 && wordsLine(n, start, c);
+      if (line && line.join() !== preview.join()) { preview = line; draw(); }
+    };
+    $('board').onpointerup = e => {
+      if (start < 0) return;
+      const c = cellAt(e), s = start;
+      start = -1;
+      if (c === s || c < 0) { anchor = anchor === s ? -1 : s; preview = []; draw(); } // 한 번 누름: 첫 글자로 표시
+      else pick(s, c);
+    };
+    draw();
+  },
+});
+</script>
+</body>
+</html>

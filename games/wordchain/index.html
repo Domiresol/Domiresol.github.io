@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>끝말잇기</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../common.js"></script>
+<style>
+  #chain { list-style: none; margin: 0; padding: 12px; min-height: 220px; max-height: 46vh; overflow-y: auto;
+           display: flex; flex-direction: column; gap: 8px; border-radius: 12px; background: var(--soft); }
+  #chain li { max-width: 75%; padding: 8px 14px; border-radius: 14px; font-weight: 700; font-size: 1.1rem; }
+  #chain .cpu { align-self: flex-start; background: var(--panel); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+  #chain .me { align-self: flex-end; background: var(--accent); color: var(--on-accent); border-bottom-right-radius: 4px; }
+  #chain small { display: block; font-size: .7rem; font-weight: 400; opacity: .7; }
+  #chain a { color: inherit; text-decoration: none; }
+  #chain a:hover { text-decoration: underline; }
+  #next { margin: 12px 0 6px; text-align: center; color: var(--muted); font-size: .9rem; }
+  #next b { color: var(--text); font-size: 1.2rem; }
+  #play { display: flex; gap: 8px; }
+  #word { flex: 1; min-width: 0; padding: 12px; border: 2px solid var(--line); border-radius: 12px; background: var(--panel);
+          color: var(--text); font: inherit; font-size: 1.2rem; font-weight: 700; text-align: center; }
+  #word:focus { outline: none; border-color: var(--accent-line); }
+  #send { padding: 0 18px; }
+</style>
+</head>
+<body>
+<header><a id="home" href="../">목록</a><span>끝말잇기</span><button id="theme" type="button"></button></header>
+<main>
+  <form class="seg" id="opts" aria-label="난이도">
+    <label><input type="radio" name="level" value="easy" checked><span>쉬움<small>쉬운 단어만</small></span></label>
+    <label><input type="radio" name="level" value="normal"><span>보통<small>사전 전체</small></span></label>
+    <label><input type="radio" name="level" value="hard"><span>어려움<small>막히는 단어 노림</small></span></label>
+  </form>
+  <div class="bar">
+    <span class="pill">이은 단어 <b id="score">0</b></span>
+    <button id="giveup" type="button">포기</button>
+    <button id="new" type="button">새 게임</button>
+  </div>
+  <ol id="chain"></ol>
+  <p id="next">사전을 불러오는 중…</p>
+  <form id="play" autocomplete="off">
+    <input id="word" maxlength="20" placeholder="단어 입력" disabled>
+    <button class="start" id="send" disabled>입력</button>
+  </form>
+  <p id="msg"></p>
+  <p class="help">컴퓨터와 번갈아 앞 단어의 끝 글자로 시작하는 명사를 말해요. 표준국어대사전에 있는 두 글자 이상 명사만 쓸 수 있고,
+    이미 나온 단어는 다시 못 써요. 두음 법칙을 허용해서 <b>력</b>으로 끝나면 <b>역</b>으로도 시작할 수 있어요.
+    컴퓨터가 이을 단어가 없으면 승리!</p>
+</main>
+<footer>단어 출처: 국립국어원 표준국어대사전 (CC BY-SA), 한국어 학습용 어휘 목록</footer>
+
+<script src="../words_common.js"></script>
+<script src="nouns.js"></script>
+<script>
+const DICT = new Set(NOUNS), EASY = new Set(COMMON), BY_START = new Map();
+for (const w of NOUNS) { if (!BY_START.has(w[0])) BY_START.set(w[0], []); BY_START.get(w[0]).push(w); }
+
+// 두음 법칙: 라·래·로 → 나·내·노, 랴·려·례·료·류·리 → 야·여·예·요·유·이, 녀·뇨·뉴·니 → 여·요·유·이
+function dueum(ch) {
+  const c = ch.charCodeAt(0) - 0xAC00, cho = Math.floor(c / 588), jung = Math.floor(c / 28) % 21, jong = c % 28;
+  // 초성 번호: ㄴ=2, ㄹ=5, ㅇ=11 / 중성 번호: ㅑ2 ㅒ3 ㅕ6 ㅖ7 ㅛ12 ㅠ17 ㅣ20
+  let to = -1;
+  if (cho === 5) to = [2, 3, 6, 7, 12, 17, 20].includes(jung) ? 11 : 2;
+  else if (cho === 2 && [6, 7, 12, 17, 20].includes(jung)) to = 11;
+  return to < 0 ? null : String.fromCharCode(0xAC00 + to * 588 + jung * 28 + jong);
+}
+const starts = w => [w.at(-1), dueum(w.at(-1))].filter(Boolean);
+const options = w => starts(w).flatMap(s => BY_START.get(s) || []).filter(x => !used.has(x));
+
+let used, last, score, done;
+
+function newGame() {
+  used = new Set(); score = 0; done = false;
+  $('chain').innerHTML = '';
+  $('msg').textContent = '';
+  // 첫 단어는 이을 쉬운 단어가 있는 것으로 고릅니다.
+  let first;
+  do first = COMMON[rand(COMMON.length)]; while (!options(first).some(w => EASY.has(w)));
+  say('cpu', first);
+  turn();
+}
+
+function say(who, w) {
+  used.add(w); last = w;
+  const li = document.createElement('li');
+  li.className = who;
+  li.innerHTML = `<small>${who === 'me' ? '나' : '컴퓨터'}</small>`;
+  li.append(Object.assign(document.createElement('a'), {
+    href: `https://stdict.korean.go.kr/search/searchResult.do?searchKeyword=${encodeURIComponent(w)}`,
+    target: '_blank', textContent: w, title: '뜻 보기' }));
+  $('chain').append(li);
+  $('chain').scrollTop = $('chain').scrollHeight;
+}
+
+// 플레이어 차례 표시와 입력 활성화
+function turn() {
+  $('score').textContent = score;
+  $('next').innerHTML = done ? '' : `<b>${starts(last).join('</b> 또는 <b>')}</b>(으)로 시작하는 단어`;
+  $('word').disabled = $('send').disabled = $('giveup').disabled = done;
+  if (!done) $('word').focus();
+}
+
+function play(w) {
+  if (!/^[가-힣]{2,}$/.test(w)) return msg('두 글자 이상 한글 단어를 입력해 주세요.');
+  if (!starts(last).includes(w[0])) return msg(`'${starts(last).join("' 또는 '")}'(으)로 시작해야 해요.`);
+  if (used.has(w)) return msg('이미 나온 단어예요.');
+  if (!DICT.has(w)) return msg('사전에 없는 명사예요.');
+  msg('');
+  say('me', w);
+  score++;
+  cpu();
+}
+
+function cpu() {
+  const level = seg('level');
+  let cands = options(last);
+  if (level === 'easy') cands = cands.filter(w => EASY.has(w));
+  if (!cands.length) return end(`컴퓨터가 이을 단어를 못 찾았어요. 승리! (${score}단어)`);
+  if (level === 'hard') {
+    // 다음에 이을 수 있는 단어 수가 가장 적은 단어를 고릅니다. 바로 끝나는 한방 단어는 쓰지 않습니다.
+    const cost = w => starts(w).reduce((n, s) => n + (BY_START.get(s)?.length || 0), 0);
+    const live = cands.filter(w => cost(w) > 0);
+    if (live.length) cands = live;
+    const min = Math.min(...cands.map(cost));
+    cands = cands.filter(w => cost(w) === min);
+  }
+  const pick = cands[rand(cands.length)];
+  say('cpu', pick);
+  if (!options(pick).length) return end(`'${pick.at(-1)}'(으)로 시작하는 단어가 더 없어요. 컴퓨터 승리! (${score}단어)`);
+  turn();
+}
+
+function end(text) { done = true; msg(text); turn(); }
+function msg(text) { $('msg').textContent = text; }
+
+// 한글 조합 중에 Enter를 누르면 마지막 글자가 빠지거나 남을 수 있어, 조합이 끝난 뒤 처리합니다.
+let composing = false, pending = false;
+function submit() {
+  if (done) return;
+  const w = $('word').value.trim();
+  $('word').value = '';
+  play(w);
+}
+$('word').addEventListener('compositionstart', () => composing = true);
+$('word').addEventListener('compositionend', () => {
+  composing = false;
+  if (pending) { pending = false; setTimeout(submit); }
+});
+$('play').onsubmit = e => { e.preventDefault(); if (composing) pending = true; else submit(); };
+$('giveup').onclick = () => {
+  const hint = options(last);
+  end(`포기했어요. ${hint.length ? `'${hint[rand(hint.length)]}' 같은 단어가 있었어요.` : ''}`);
+};
+$('opts').onchange = e => { e.target.blur(); newGame(); };
+$('new').onclick = newGame;
+newGame();
+</script>
+</body>
+</html>

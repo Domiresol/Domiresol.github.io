@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>노노그램</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../common.js"></script>
+<style>
+  #board { gap: 0; touch-action: none; font-size: var(--fs); }
+  #board .cell { border: 0; border-radius: 0; background: var(--panel); box-shadow: inset -1px -1px 0 var(--line); font-size: 1em; }
+  #board .r5 { box-shadow: inset -2px -1px 0 var(--line-strong); }
+  #board .b5 { box-shadow: inset -1px -2px 0 var(--line-strong); }
+  #board .r5.b5 { box-shadow: inset -2px -2px 0 var(--line-strong); }
+  #board .on { background: var(--text); }
+  #board .x { color: var(--muted); }
+  #board .x::after { content: '×'; }
+  .clue { display: flex; gap: 3px; color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .clue.ok { color: var(--muted); opacity: .45; }
+  .clue.col { flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 3px; }
+  .clue.row { justify-content: flex-end; align-items: center; padding-right: 5px; white-space: nowrap; }</style>
+</head>
+<body>
+<header>
+  <a id="home" href="../">목록</a>
+  <span class="mid" id="mid" hidden>
+    <a id="prev" class="nav" aria-label="이전 문제">‹</a>
+    <span><span id="title"></span><small id="date"></small></span>
+    <a id="next" class="nav" aria-label="다음 문제">›</a>
+  </span>
+  <button id="theme" type="button"></button>
+</header>
+<main>
+  <form id="entry" hidden></form>
+  <div id="game" hidden>
+    <div class="bar">
+      <span class="pill">시간 <b id="time">0:00</b></span>
+      <button id="xMode" type="button" aria-pressed="false">× 표시</button>
+    </div>
+    <div class="board" id="board"></div>
+    <p id="msg"></p>
+    <p class="help">줄 옆 숫자는 그 줄에서 연속으로 칠해진 칸의 길이예요. 예를 들어 <b>2 1</b>이면 2칸, 한 칸 이상 띄우고 1칸이 칠해져 있어요.
+      칸을 누르거나 끌어서 칠하고, 오른쪽 클릭이나 <b>× 표시</b> 모드로 빈칸을 표시해요. 다 맞춘 줄의 숫자는 흐려집니다.</p>
+  </div>
+</main>
+<script src="gen.js"></script>
+<script>
+daily({
+  id: 'nonogram', name: '노노그램', desc: '숫자 힌트로 칠할 칸을 찾아내는 네모 로직 퍼즐이에요.',
+  levels: { easy: ['쉬움', '5×5'], normal: ['보통', '10×10'], hard: ['어려움', '15×15'] },
+  run(r, level, finish) {
+    const { n, sol, rows, cols } = nonoGen(r, level);
+    const s = Array(n * n).fill(0); // 0 빈칸, 1 칠함, 2 × 표시
+    const clock = timer($('time'));
+    let paint = -1, done = false;
+    $('board').style.gridTemplateColumns = `auto repeat(${n}, 1fr)`;
+    $('board').style.setProperty('--fs', { 5: '1rem', 10: '.8rem', 15: '.65rem' }[n]);
+
+    function draw() {
+      const line = idx => nonoClue(idx.map(i => s[i] === 1 ? 1 : 0));
+      const same = (a, b) => a.join() === b.join();
+      let html = '<div></div>' + cols.map((c, x) => `<div class="clue col${same(line(rows.map((_, y) => y * n + x)), c) ? ' ok' : ''}">` +
+        `${(c.length ? c : [0]).map(v => `<span>${v}</span>`).join('')}</div>`).join('');
+      for (let y = 0; y < n; y++) {
+        const c = rows[y], idx = Array.from({ length: n }, (_, x) => y * n + x);
+        html += `<div class="clue row${same(line(idx), c) ? ' ok' : ''}">${(c.length ? c : [0]).map(v => `<span>${v}</span>`).join('')}</div>`;
+        html += idx.map(i => {
+          const x = i % n, cls = ['cell', ['', 'on', 'x'][s[i]]];
+          if (x % 5 === 4 && x < n - 1) cls.push('r5');
+          if (y % 5 === 4 && y < n - 1) cls.push('b5');
+          return `<div class="${cls.join(' ')}" data-i="${i}"></div>`;
+        }).join('');
+      }
+      $('board').innerHTML = html;
+    }
+
+    function set(i) {
+      if (s[i] === paint) return;
+      s[i] = paint;
+      draw();
+      if (sol.every((v, k) => (v === 1) === (s[k] === 1))) {
+        done = true; paint = -1; clock.stop();
+        s.forEach((v, k) => { if (v !== 1) s[k] = 2; });
+        draw();
+        finish(clock.text);
+      }
+    }
+    const cellAt = e => document.elementFromPoint(e.clientX, e.clientY)?.closest('#board [data-i]');
+
+    // 누른 칸의 상태를 바꾸고, 끄는 동안 같은 값으로 칠합니다.
+    $('board').onpointerdown = e => {
+      const c = cellAt(e);
+      if (!c || done) return;
+      e.preventDefault();
+      clock.start();
+      const i = +c.dataset.i, mode = e.button === 2 || $('xMode').getAttribute('aria-pressed') === 'true' ? 2 : 1;
+      paint = s[i] === mode ? 0 : mode;
+      $('board').setPointerCapture(e.pointerId);
+      set(i);
+    };
+    $('board').onpointermove = e => { if (paint < 0) return; const c = cellAt(e); if (c) set(+c.dataset.i); };
+    $('board').onpointerup = $('board').onpointercancel = () => { paint = -1; };
+    $('board').oncontextmenu = e => e.preventDefault();
+    $('xMode').onclick = e => {
+      e.currentTarget.setAttribute('aria-pressed', e.currentTarget.getAttribute('aria-pressed') !== 'true');
+      e.currentTarget.blur();
+    };
+    draw();
+  },
+});
+</script>
+</body>
+</html>

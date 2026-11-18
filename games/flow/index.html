@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>색 점 잇기</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../common.js"></script>
+<style>
+  .wrap { position: relative; touch-action: none; user-select: none; -webkit-user-select: none; }
+  #board { gap: 0; border: 2px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--soft); }
+  #board .cell { border: 0; border-radius: 0; background: none; box-shadow: inset 0 0 0 .5px var(--line); }
+  #lines { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); pointer-events: none; }
+  #lines polyline { fill: none; stroke-width: .34; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+<header>
+  <a id="home" href="../">목록</a>
+  <span class="mid" id="mid" hidden>
+    <a id="prev" class="nav" aria-label="이전 문제">‹</a>
+    <span><span id="title"></span><small id="date"></small></span>
+    <a id="next" class="nav" aria-label="다음 문제">›</a>
+  </span>
+  <button id="theme" type="button"></button>
+</header>
+<main>
+  <form id="entry" hidden></form>
+  <div id="game" hidden>
+    <div class="bar">
+      <span class="pill">연결 <b id="links">0</b></span><span class="pill">채움 <b id="fill">0%</b></span>
+      <span class="pill">시간 <b id="time">0:00</b></span>
+    </div>
+    <div class="wrap">
+      <div class="board" id="board"></div>
+      <svg id="lines" aria-hidden="true"></svg>
+    </div>
+    <p id="msg"></p>
+    <p class="help">같은 색 점끼리 끌어서 선으로 이어요. 선은 서로 겹칠 수 없고, 모든 색을 잇고 판의 모든 칸을 채우면 성공!
+      그려 둔 선 위에서 다시 끌면 그 지점부터 고칠 수 있고, 다른 선을 가로지르면 그 선이 잘려요.</p>
+  </div>
+</main>
+<script src="gen.js"></script>
+<script>
+const COLORS = ['#e5484d', '#3b82f6', '#22a35a', '#eab308', '#f97316', '#8b5cf6', '#06b6d4', '#ec4899', '#a16207', '#64748b'];
+daily({
+  id: 'flow', name: '색 점 잇기', desc: '같은 색 점끼리 선으로 이어 판을 가득 채워요.',
+  levels: { easy: ['쉬움', '5×5 · 5색'], normal: ['보통', '7×7 · 7색'], hard: ['어려움', '9×9 · 10색'] },
+  run(r, level, finish) {
+    const { n, ends } = flowGen(r, level);
+    const endOf = {}; // 칸 → 그 칸이 끝 점인 색 번호
+    ends.forEach(([a, b], c) => { endOf[a] = endOf[b] = c; });
+    const paths = ends.map(() => []), clock = timer($('time'));
+    let active = -1, done = false;
+    $('board').style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+    $('lines').setAttribute('viewBox', `0 0 ${n} ${n}`);
+
+    const owner = i => paths.findIndex(p => p.includes(i));
+    const complete = c => { const p = paths[c]; return p.length > 1 && endOf[p.at(-1)] === c && p.at(-1) !== p[0]; };
+    const pt = i => `${i % n + .5},${(i / n | 0) + .5}`;
+
+    function draw() {
+      $('board').innerHTML = Array.from({ length: n * n }, (_, i) => {
+        const c = owner(i);
+        return `<div class="cell"${c >= 0 ? ` style="background:color-mix(in srgb, ${COLORS[c]} 22%, transparent)"` : ''}></div>`;
+      }).join('');
+      $('lines').innerHTML = paths.map((p, c) => p.length > 1 ? `<polyline points="${p.map(pt).join(' ')}" stroke="${COLORS[c]}"/>` : '').join('') +
+        ends.flatMap(([a, b], c) => [a, b].map(i => `<circle cx="${i % n + .5}" cy="${(i / n | 0) + .5}" r=".36" fill="${COLORS[c]}"/>`)).join('');
+      $('links').textContent = `${paths.filter((_, c) => complete(c)).length}/${ends.length}`;
+      $('fill').textContent = `${Math.floor(new Set(paths.flat()).size / (n * n) * 100)}%`;
+    }
+
+    function cellAt(e) {
+      const b = $('board').getBoundingClientRect();
+      const x = Math.floor((e.clientX - b.left) / b.width * n), y = Math.floor((e.clientY - b.top) / b.height * n);
+      return x >= 0 && x < n && y >= 0 && y < n ? y * n + x : -1;
+    }
+
+    $('board').onpointerdown = e => {
+      const i = cellAt(e);
+      if (i < 0 || done) return;
+      if (endOf[i] !== undefined) { active = endOf[i]; paths[active] = [i]; } // 끝 점에서 새로 시작
+      else {
+        active = owner(i);
+        if (active < 0) return;
+        const p = paths[active];
+        p.length = p.indexOf(i) + 1; // 선 중간에서 시작하면 그 지점 뒤를 지움
+      }
+      clock.start();
+      $('board').setPointerCapture(e.pointerId);
+      draw();
+    };
+    $('board').onpointermove = e => {
+      if (active < 0) return;
+      const i = cellAt(e), p = paths[active], last = p.at(-1);
+      if (i < 0 || i === last || !flowNeighbors(n, last).includes(i)) return;
+      const at = p.indexOf(i);
+      if (at >= 0) p.length = at + 1; // 되돌아가기
+      else {
+        if (complete(active)) return; // 이미 반대쪽 점에 닿음
+        if (endOf[i] !== undefined && endOf[i] !== active) return; // 다른 색 점은 지나갈 수 없음
+        const o = owner(i);
+        if (o >= 0) paths[o].length = paths[o].indexOf(i); // 다른 선을 가로지르면 그 선을 자름
+        p.push(i);
+      }
+      draw();
+    };
+    $('board').onpointerup = $('board').onpointercancel = () => {
+      if (active < 0) return;
+      active = -1;
+      if (flowSolved(n, ends, paths)) { done = true; clock.stop(); finish(clock.text); }
+    };
+    draw();
+  },
+});
+</script>
+</body>
+</html>
