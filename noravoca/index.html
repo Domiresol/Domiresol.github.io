@@ -7,13 +7,56 @@
 <style>
   :root { --g: #7ddc8c; --y: #ffe082; --b: #c8c8c8; --key: #fff; }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body { margin: 0; font-family: system-ui, sans-serif; background: #f3f3f3; color: #222;
          display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-  header { width: 100%; max-width: 420px; padding: 14px 16px; text-align: center; font-weight: 700; background: #fff; }
+  header { width: 100%; max-width: 420px; padding: 12px 16px; background: #fff; font-weight: 700;
+           display: grid; grid-template-columns: 56px 1fr 56px; align-items: center; text-align: center; }
+  #home { color: #222; text-decoration: none; font-size: .85rem; padding: 4px 0; border: 1px solid #ddd;
+          border-radius: 999px; }
+  #home:hover { background: #f3f3f3; }
+  .mid { grid-column: 2; display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+  .nav { width: 32px; height: 32px; flex: none; display: flex; align-items: center; justify-content: center;
+         border-radius: 50%; color: #222; text-decoration: none; font-size: 1.4rem; line-height: 1; }
+  .nav:hover { background: #f3f3f3; }
+  .nav.off { visibility: hidden; }
+  #date { display: block; font-size: .75rem; font-weight: 400; color: #888; margin-top: 2px; }
   main { width: 100%; max-width: 420px; padding: 16px; background: #fff; }
-  form { display: flex; flex-direction: column; gap: 12px; align-items: center; padding: 40px 0; }
   input, button { font: inherit; padding: 10px 14px; border-radius: 8px; border: 1px solid #ccc; }
-  form button, #msg button { background: #ffe14d; border: 0; font-weight: 700; cursor: pointer; }
+  #msg button { background: #ffe14d; border: 0; font-weight: 700; cursor: pointer; }
+
+  /* 시작 화면 */
+  #entry { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 28px 0 8px; text-align: center; }
+  #entry > .field, #entry > .seg, #entry > .start, #entry > .legend { width: 100%; max-width: 300px; }
+  .logo { display: flex; gap: 6px; }
+  .logo i, .legend i { font-style: normal; display: inline-flex; align-items: center; justify-content: center;
+                       border-radius: 10px; border: 2px solid; font-weight: 700; }
+  .logo i { width: 48px; height: 48px; font-size: 1.5rem; }
+  .logo i:nth-child(odd) { transform: rotate(-4deg); }
+  .logo i:nth-child(even) { transform: rotate(3deg); }
+  h1 { margin: 4px 0 0; font-size: 1.6rem; letter-spacing: -.02em; }
+  .date-pill { margin: 0; padding: 6px 14px; border-radius: 999px; background: #f3f3f3; font-size: .9rem; font-weight: 600; }
+  .desc { margin: 0; color: #666; font-size: .9rem; line-height: 1.5; }
+  .field { display: flex; flex-direction: column; gap: 6px; font-size: .8rem; font-weight: 600; color: #777; text-align: left; }
+  .field input { font-size: 1.4rem; font-weight: 700; text-align: center; padding: 12px; border: 2px solid #ddd; border-radius: 12px; }
+  .field input:focus { outline: none; border-color: #f5c400; }
+  .start { padding: 14px; border: 0; border-radius: 12px; background: #ffe14d; font-weight: 700; font-size: 1.05rem;
+           cursor: pointer; box-shadow: 0 3px 0 #e0c200; }
+  .start:active { transform: translateY(2px); box-shadow: 0 1px 0 #e0c200; }
+  .legend { list-style: none; margin: 6px 0 0; padding: 14px; border-radius: 12px; background: #fafafa;
+            display: flex; flex-direction: column; gap: 8px; font-size: .85rem; color: #555; text-align: left; }
+  .legend li { display: flex; align-items: center; gap: 10px; }
+  .legend i { width: 28px; height: 28px; flex: none; font-size: .95rem; }
+  /* 난이도 선택: 라디오 버튼을 카드처럼 표시 */
+  .seg { display: flex; gap: 8px; }
+  .seg label { flex: 1; position: relative; }
+  .seg input { position: absolute; opacity: 0; }
+  .seg span { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 8px;
+              border: 2px solid #ddd; border-radius: 12px; font-weight: 700; cursor: pointer;
+              transition: border-color .15s, background .15s; }
+  .seg small { font-weight: 400; font-size: .75rem; color: #777; }
+  .seg input:checked + span { border-color: #f5c400; background: #fff7cc; }
+  .seg input:focus-visible + span { outline: 2px solid #222; outline-offset: 2px; }
   #grid { display: grid; gap: 6px; margin: 0 auto; }
   .tile { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px;
           border: 2px solid #ddd; font-size: 1.4rem; font-weight: 700; transition: background .3s; }
@@ -21,6 +64,10 @@
   .g { background: var(--g) !important; border-color: var(--g) !important; }
   .y { background: var(--y) !important; border-color: var(--y) !important; }
   .b { background: var(--b) !important; border-color: var(--b) !important; }
+  #hintbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin-top: 12px; }
+  #hintBtn { background: #fff; border: 1px solid #ddd; border-radius: 999px; padding: 6px 14px; font-size: .9rem; cursor: pointer; }
+  #hintBtn:disabled { opacity: .5; cursor: default; }
+  #hint { font-weight: 600; color: #555; }
   #msg { min-height: 2.5em; margin: 12px 0; text-align: center; font-weight: 600; }
   #kb { width: 100%; max-width: 420px; padding: 10px 6px 20px; display: flex; flex-direction: column; gap: 6px; }
   .row { display: flex; gap: 5px; justify-content: center; }
@@ -31,20 +78,38 @@
 </style>
 </head>
 <body>
-<header id="title">자모 맞추기</header>
+<header hidden>
+  <a id="home" href="?">홈</a>
+  <span class="mid">
+    <a id="prev" class="nav" aria-label="이전 문제">‹</a>
+    <span><span id="title">자모 맞추기</span><small id="date"></small></span>
+    <a id="next" class="nav" aria-label="다음 문제">›</a>
+  </span>
+</header>
 
 <main>
   <form id="entry" hidden>
-    <div>오늘(<span id="today"></span>) 같은 번호·난이도를 고르면 같은 문제가 나옵니다.</div>
-    <input name="n" type="number" min="1" max="9999" required placeholder="문제 번호" autofocus>
-    <select name="d">
-      <option value="easy">쉬움</option>
-      <option value="hard">어려움</option>
-    </select>
-    <button>시작</button>
+    <div class="logo" aria-hidden="true"><i class="g">ㅈ</i><i class="y">ㅏ</i><i class="b">ㅁ</i><i class="g">ㅗ</i></div>
+    <h1>자모 맞추기</h1>
+    <p class="date-pill" id="today"></p>
+    <p class="desc">단어를 자모로 풀어 6번 안에 맞혀 보세요.<br>같은 날 같은 번호·난이도면 모두 같은 문제예요.</p>
+    <label class="field">문제 번호
+      <input name="n" type="number" inputmode="numeric" min="1" max="9999" required placeholder="1 ~ 9999" autofocus>
+    </label>
+    <div class="seg" role="radiogroup" aria-label="난이도">
+      <label><input type="radio" name="d" value="easy" checked><span>쉬움<small>자모 5·6개</small></span></label>
+      <label><input type="radio" name="d" value="hard"><span>어려움<small>자모 6·7개</small></span></label>
+    </div>
+    <button class="start">시작하기</button>
+    <ul class="legend">
+      <li><i class="g">ㄱ</i>자리와 자모가 모두 맞음</li>
+      <li><i class="y">ㅏ</i>자모는 있지만 자리가 다름</li>
+      <li><i class="b">ㅂ</i>정답에 없는 자모</li>
+    </ul>
   </form>
   <div id="game" hidden>
     <div id="grid"></div>
+    <div id="hintbar"><button id="hintBtn">💡 힌트</button><span id="hint"></span></div>
     <div id="msg"></div>
   </div>
 </main>
@@ -66,8 +131,14 @@ const num = parseInt(params.get('n'), 10);
 const level = params.get('d') === 'hard' ? 'hard' : 'easy'; // 없거나 잘못되면 쉬움
 const $ = id => document.getElementById(id);
 
+// '2026-11-18' -> '2026년 11월 18일 (수)'
+function fmtDate(d) {
+  const [y, m, day] = d.split('-').map(Number);
+  return `${y}년 ${m}월 ${day}일 (${'일월화수목금토'[new Date(Date.UTC(y, m - 1, day)).getUTCDay()]})`;
+}
+
 if (!(num >= 1)) {
-  $('today').textContent = date;
+  $('today').textContent = fmtDate(date);
   $('entry').hidden = false;
 } else {
   start();
@@ -87,8 +158,27 @@ function start() {
   const history = [];
   let row = 0, cur = [], done = false;
 
-  $('title').textContent = `${date} · ${num}번 · ${LEVELS[level].name} · 자모 ${COLS}개`;
-  $('game').hidden = $('kb').hidden = false;
+  // 힌트: 누를 때마다 음절 수, 초성 순으로 하나씩 공개
+  const SYL_CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+  const HINTS = [
+    `${answerWord.length}글자`,
+    `초성 ${[...answerWord].map(c => SYL_CHO[Math.floor((c.charCodeAt(0) - 0xAC00) / 588)]).join('')}`,
+  ];
+  let hintsUsed = 0;
+  $('hintBtn').onclick = () => {
+    hintsUsed++;
+    $('hint').textContent = HINTS.slice(0, hintsUsed).join(' · ');
+    $('hintBtn').disabled = hintsUsed === HINTS.length;
+  };
+
+  $('title').textContent = `${num}번 · ${LEVELS[level].name} · 자모 ${COLS}개`;
+  $('date').textContent = fmtDate(date);
+  // 같은 난이도로 이전·다음 번호 이동 (1~9999 범위 밖이면 숨김)
+  $('prev').href = `?n=${num - 1}&d=${level}`;
+  $('next').href = `?n=${num + 1}&d=${level}`;
+  $('prev').classList.toggle('off', num <= 1);
+  $('next').classList.toggle('off', num >= 9999);
+  $('game').hidden = $('kb').hidden = document.querySelector('header').hidden = false;
   Object.assign($('grid').style, { gridTemplateColumns: `repeat(${COLS}, 1fr)`, maxWidth: `${COLS * 60}px` });
 
   for (let i = 0; i < ROWS * COLS; i++) {
@@ -123,7 +213,8 @@ function start() {
   const SHIFT = { KeyQ: 'ㅂㅂ', KeyW: 'ㅈㅈ', KeyE: 'ㄷㄷ', KeyR: 'ㄱㄱ', KeyT: 'ㅅㅅ', KeyO: 'ㅑㅣ', KeyP: 'ㅕㅣ' };
   document.addEventListener('keydown', e => {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (e.key === 'Enter') return press('입력');
+    // 마지막으로 누른 버튼(힌트·화면 키)에 포커스가 남아 Enter가 그 버튼까지 누르지 않도록 막습니다.
+    if (e.key === 'Enter') { e.preventDefault(); return press('입력'); }
     if (e.key === 'Backspace') return press('⌫');
     const s = (e.shiftKey && SHIFT[e.code]) || CODE[e.code];
     if (s) { e.preventDefault(); [...s].forEach(press); }
@@ -161,6 +252,7 @@ function start() {
     const win = res.every(c => c === 'g');
     if (win || row === ROWS) {
       done = true;
+      $('hintBtn').disabled = true;
       $('msg').innerHTML = '';
       $('msg').append(
         win ? `정답! ${row}번 만에 맞혔습니다. ` : '아쉽네요. ',
@@ -181,7 +273,7 @@ function start() {
   function share(win) {
     const EMOJI = { g: '🟩', y: '🟨', b: '⬜' };
     const text = [
-      `자모 맞추기 ${date} · ${num}번 · ${LEVELS[level].name} · 자모 ${COLS}개 ${win ? row : 'X'}/${ROWS}`,
+      `자모 맞추기 ${date} · ${num}번 · ${LEVELS[level].name} · 자모 ${COLS}개 ${win ? row : 'X'}/${ROWS}${hintsUsed ? ` 💡${hintsUsed}` : ''}`,
       ...history.map(r => r.map(c => EMOJI[c]).join('')),
       `${location.origin}${location.pathname}?n=${num}&d=${level}`
     ].join('\n');
