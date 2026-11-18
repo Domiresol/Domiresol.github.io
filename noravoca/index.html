@@ -14,7 +14,7 @@
   form { display: flex; flex-direction: column; gap: 12px; align-items: center; padding: 40px 0; }
   input, button { font: inherit; padding: 10px 14px; border-radius: 8px; border: 1px solid #ccc; }
   form button, #msg button { background: #ffe14d; border: 0; font-weight: 700; cursor: pointer; }
-  #grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 300px; margin: 0 auto; }
+  #grid { display: grid; gap: 6px; margin: 0 auto; }
   .tile { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px;
           border: 2px solid #ddd; font-size: 1.4rem; font-weight: 700; transition: background .3s; }
   .tile.filled { border-color: #999; }
@@ -35,8 +35,12 @@
 
 <main>
   <form id="entry" hidden>
-    <div>오늘(<span id="today"></span>) 같은 번호를 넣으면 같은 문제가 나옵니다.</div>
+    <div>오늘(<span id="today"></span>) 같은 번호·난이도를 고르면 같은 문제가 나옵니다.</div>
     <input name="n" type="number" min="1" max="9999" required placeholder="문제 번호" autofocus>
+    <select name="d">
+      <option value="easy">쉬움</option>
+      <option value="hard">어려움</option>
+    </select>
     <button>시작</button>
   </form>
   <div id="game" hidden>
@@ -50,9 +54,16 @@
 <script src="words.js"></script>
 <script src="jamo.js"></script>
 <script>
-const ROWS = 6, COLS = 5;
+const ROWS = 6;
+// 난이도별 자모 수와 학습용 어휘 등급(A가 가장 쉬움). check.js와 같아야 합니다.
+const LEVELS = {
+  easy: { name: '쉬움', lengths: [5, 6], grades: 'AB' },
+  hard: { name: '어려움', lengths: [6, 7], grades: 'BC' },
+};
 const date = kstDate();
-const num = parseInt(new URLSearchParams(location.search).get('n'), 10);
+const params = new URLSearchParams(location.search);
+const num = parseInt(params.get('n'), 10);
+const level = params.get('d') === 'hard' ? 'hard' : 'easy'; // 없거나 잘못되면 쉬움
 const $ = id => document.getElementById(id);
 
 if (!(num >= 1)) {
@@ -63,17 +74,22 @@ if (!(num >= 1)) {
 }
 
 function start() {
-  const answerWord = ANSWERS[pickIndex(date, num, ANSWERS.length)];
+  // 난이도에 맞는 자모 수·등급의 정답을 한 목록으로 합쳐 고르고, 칸 수는 정답 길이를 따릅니다.
+  const { lengths, grades } = LEVELS[level];
+  const all = lengths.flatMap(n => [...grades].flatMap(g => WORDS[n][g]));
+  const answerWord = all[pickIndex(date, num, all.length)];
   const answer = toJamo(answerWord);
-  const valid = new Set(VALID.map(w => toJamo(w).join('')));
+  const COLS = answer.length;
+  const valid = new Set(WORDS[COLS].valid.map(w => toJamo(w).join('')));
   const tiles = [];
   const keys = {};
   const rank = { b: 1, y: 2, g: 3 };
   const history = [];
   let row = 0, cur = [], done = false;
 
-  $('title').textContent = `${date} · ${num}번 문제`;
+  $('title').textContent = `${date} · ${num}번 · ${LEVELS[level].name} · 자모 ${COLS}개`;
   $('game').hidden = $('kb').hidden = false;
+  Object.assign($('grid').style, { gridTemplateColumns: `repeat(${COLS}, 1fr)`, maxWidth: `${COLS * 60}px` });
 
   for (let i = 0; i < ROWS * COLS; i++) {
     const t = document.createElement('div');
@@ -131,7 +147,7 @@ function start() {
   }
 
   function submit() {
-    if (cur.length < COLS) return say('자모 5개를 채워 주세요.');
+    if (cur.length < COLS) return say(`자모 ${COLS}개를 채워 주세요.`);
     if (!valid.has(cur.join(''))) return say('사전에 없는 단어입니다.');
     const res = judge(cur, answer);
     res.forEach((c, i) => {
@@ -165,9 +181,9 @@ function start() {
   function share(win) {
     const EMOJI = { g: '🟩', y: '🟨', b: '⬜' };
     const text = [
-      `자모 맞추기 ${date} · ${num}번 ${win ? row : 'X'}/${ROWS}`,
+      `자모 맞추기 ${date} · ${num}번 · ${LEVELS[level].name} · 자모 ${COLS}개 ${win ? row : 'X'}/${ROWS}`,
       ...history.map(r => r.map(c => EMOJI[c]).join('')),
-      `${location.origin}${location.pathname}?n=${num}`
+      `${location.origin}${location.pathname}?n=${num}&d=${level}`
     ].join('\n');
     navigator.clipboard.writeText(text)
       .then(() => alert('결과를 복사했습니다.'))
