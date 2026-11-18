@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>자모 맞추기</title>
+<style>
+  :root { --g: #7ddc8c; --y: #ffe082; --b: #c8c8c8; --key: #fff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, sans-serif; background: #f3f3f3; color: #222;
+         display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+  header { width: 100%; max-width: 420px; padding: 14px 16px; text-align: center; font-weight: 700; background: #fff; }
+  main { width: 100%; max-width: 420px; padding: 16px; background: #fff; }
+  form { display: flex; flex-direction: column; gap: 12px; align-items: center; padding: 40px 0; }
+  input, button { font: inherit; padding: 10px 14px; border-radius: 8px; border: 1px solid #ccc; }
+  form button, #msg button { background: #ffe14d; border: 0; font-weight: 700; cursor: pointer; }
+  #grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 300px; margin: 0 auto; }
+  .tile { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px;
+          border: 2px solid #ddd; font-size: 1.4rem; font-weight: 700; transition: background .3s; }
+  .tile.filled { border-color: #999; }
+  .g { background: var(--g) !important; border-color: var(--g) !important; }
+  .y { background: var(--y) !important; border-color: var(--y) !important; }
+  .b { background: var(--b) !important; border-color: var(--b) !important; }
+  #msg { min-height: 2.5em; margin: 12px 0; text-align: center; font-weight: 600; }
+  #kb { width: 100%; max-width: 420px; padding: 10px 6px 20px; display: flex; flex-direction: column; gap: 6px; }
+  .row { display: flex; gap: 5px; justify-content: center; }
+  .row button { flex: 1; max-width: 40px; height: 50px; padding: 0; border: 0; background: var(--key);
+                font-size: 1.05rem; cursor: pointer; }
+  .row button.wide { max-width: 64px; font-size: .9rem; }
+  footer { font-size: .75rem; color: #888; padding: 8px 16px 20px; text-align: center; }
+</style>
+</head>
+<body>
+<header id="title">자모 맞추기</header>
+
+<main>
+  <form id="entry" hidden>
+    <div>오늘(<span id="today"></span>) 같은 번호를 넣으면 같은 문제가 나옵니다.</div>
+    <input name="n" type="number" min="1" max="9999" required placeholder="문제 번호" autofocus>
+    <button>시작</button>
+  </form>
+  <div id="game" hidden>
+    <div id="grid"></div>
+    <div id="msg"></div>
+  </div>
+</main>
+<div id="kb" hidden></div>
+<footer>단어 출처: 국립국어원 표준국어대사전 (CC BY-SA), 한국어 학습용 어휘 목록</footer>
+
+<script src="words.js"></script>
+<script src="jamo.js"></script>
+<script>
+const ROWS = 6, COLS = 5;
+const date = kstDate();
+const num = parseInt(new URLSearchParams(location.search).get('n'), 10);
+const $ = id => document.getElementById(id);
+
+if (!(num >= 1)) {
+  $('today').textContent = date;
+  $('entry').hidden = false;
+} else {
+  start();
+}
+
+function start() {
+  const answerWord = ANSWERS[pickIndex(date, num, ANSWERS.length)];
+  const answer = toJamo(answerWord);
+  const valid = new Set(VALID.map(w => toJamo(w).join('')));
+  const tiles = [];
+  const keys = {};
+  const rank = { b: 1, y: 2, g: 3 };
+  const history = [];
+  let row = 0, cur = [], done = false;
+
+  $('title').textContent = `${date} · ${num}번 문제`;
+  $('game').hidden = $('kb').hidden = false;
+
+  for (let i = 0; i < ROWS * COLS; i++) {
+    const t = document.createElement('div');
+    t.className = 'tile';
+    $('grid').append(t);
+    tiles.push(t);
+  }
+
+  // 화면 키보드 (2벌식 배열, 복합 자모 없음)
+  [['ㅂ', 'ㅈ', 'ㄷ', 'ㄱ', 'ㅅ', 'ㅛ', 'ㅕ', 'ㅑ', '⌫'],
+   ['ㅁ', 'ㄴ', 'ㅇ', 'ㄹ', 'ㅎ', 'ㅗ', 'ㅓ', 'ㅏ', 'ㅣ'],
+   ['입력', 'ㅋ', 'ㅌ', 'ㅊ', 'ㅍ', 'ㅠ', 'ㅜ', 'ㅡ']].forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'row';
+    r.forEach(k => {
+      const b = document.createElement('button');
+      b.textContent = k;
+      if (k.length > 1 || k === '⌫') b.className = 'wide';
+      b.onclick = () => press(k);
+      keys[k] = b;
+      div.append(b);
+    });
+    $('kb').append(div);
+  });
+
+  // 물리 키보드: 한/영 상태와 무관하게 키 위치(e.code)로 매핑. ㅐ·ㄲ 등은 분해해서 입력
+  const CODE = { KeyQ: 'ㅂ', KeyW: 'ㅈ', KeyE: 'ㄷ', KeyR: 'ㄱ', KeyT: 'ㅅ', KeyY: 'ㅛ', KeyU: 'ㅕ', KeyI: 'ㅑ',
+    KeyO: 'ㅏㅣ', KeyP: 'ㅓㅣ', KeyA: 'ㅁ', KeyS: 'ㄴ', KeyD: 'ㅇ', KeyF: 'ㄹ', KeyG: 'ㅎ', KeyH: 'ㅗ',
+    KeyJ: 'ㅓ', KeyK: 'ㅏ', KeyL: 'ㅣ', KeyZ: 'ㅋ', KeyX: 'ㅌ', KeyC: 'ㅊ', KeyV: 'ㅍ', KeyB: 'ㅠ',
+    KeyN: 'ㅜ', KeyM: 'ㅡ' };
+  const SHIFT = { KeyQ: 'ㅂㅂ', KeyW: 'ㅈㅈ', KeyE: 'ㄷㄷ', KeyR: 'ㄱㄱ', KeyT: 'ㅅㅅ', KeyO: 'ㅑㅣ', KeyP: 'ㅕㅣ' };
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === 'Enter') return press('입력');
+    if (e.key === 'Backspace') return press('⌫');
+    const s = (e.shiftKey && SHIFT[e.code]) || CODE[e.code];
+    if (s) { e.preventDefault(); [...s].forEach(press); }
+  });
+
+  function press(k) {
+    if (done) return;
+    if (k === '⌫') cur.pop();
+    else if (k === '입력') return submit();
+    else if (cur.length < COLS) cur.push(k);
+    draw();
+  }
+
+  function draw() {
+    for (let i = 0; i < COLS; i++) {
+      const t = tiles[row * COLS + i];
+      t.textContent = cur[i] || '';
+      t.classList.toggle('filled', !!cur[i]);
+    }
+    $('msg').textContent = '';
+  }
+
+  function submit() {
+    if (cur.length < COLS) return say('자모 5개를 채워 주세요.');
+    if (!valid.has(cur.join(''))) return say('사전에 없는 단어입니다.');
+    const res = judge(cur, answer);
+    res.forEach((c, i) => {
+      tiles[row * COLS + i].classList.add(c);
+      const key = keys[cur[i]];
+      const prev = ['g', 'y', 'b'].find(x => key.classList.contains(x));
+      if (!prev || rank[c] > rank[prev]) { key.classList.remove('b', 'y', 'g'); key.classList.add(c); }
+    });
+    history.push(res);
+    row++;
+    const win = res.every(c => c === 'g');
+    if (win || row === ROWS) {
+      done = true;
+      $('msg').innerHTML = '';
+      $('msg').append(
+        win ? `정답! ${row}번 만에 맞혔습니다. ` : '아쉽네요. ',
+        `정답: ${answerWord} `,
+        Object.assign(document.createElement('a'), {
+          href: `https://stdict.korean.go.kr/search/searchResult.do?searchKeyword=${encodeURIComponent(answerWord)}`,
+          target: '_blank', textContent: '[뜻 보기]'
+        }),
+        document.createElement('br'),
+        Object.assign(document.createElement('button'), {
+          textContent: '결과 복사', onclick: () => share(win)
+        }));
+    }
+    cur = [];
+  }
+
+  // 정답 글자는 빼고 색만 공유
+  function share(win) {
+    const EMOJI = { g: '🟩', y: '🟨', b: '⬜' };
+    const text = [
+      `자모 맞추기 ${date} · ${num}번 ${win ? row : 'X'}/${ROWS}`,
+      ...history.map(r => r.map(c => EMOJI[c]).join('')),
+      `${location.origin}${location.pathname}?n=${num}`
+    ].join('\n');
+    navigator.clipboard.writeText(text)
+      .then(() => alert('결과를 복사했습니다.'))
+      .catch(() => prompt('아래 내용을 복사하세요.', text));
+  }
+
+  function say(text) { $('msg').textContent = text; }
+}
+</script>
+</body>
+</html>
