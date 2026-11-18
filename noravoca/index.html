@@ -5,25 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>자모 맞추기</title>
 <style>
-  :root { --g: #7ddc8c; --y: #ffe082; --b: #c8c8c8; --key: #fff; }
+  /* 색상: 라이트 기본, 다크는 시스템 설정 또는 토글(data-theme)로 적용 */
+  :root {
+    color-scheme: light;
+    --bg: #f3f3f3; --panel: #fff; --text: #222; --muted: #777; --line: #ddd; --line-strong: #999;
+    --soft: #f3f3f3; --key: #fff; --accent: #ffe14d; --accent-line: #f5c400; --accent-soft: #fff7cc;
+    --accent-shadow: #e0c200; --g: #7ddc8c; --y: #ffe082; --b: #c8c8c8; --on-tile: #222;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #121213; --panel: #1c1c1e; --text: #ececec; --muted: #9a9a9e; --line: #3a3a3c; --line-strong: #6e6e73;
+      --soft: #2a2a2d; --key: #3a3a3c; --accent-soft: #3b3416; --accent-shadow: #b89a00;
+      --g: #3f9e55; --y: #c9a227; --b: #4a4a4d; --on-tile: #fff;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #121213; --panel: #1c1c1e; --text: #ececec; --muted: #9a9a9e; --line: #3a3a3c; --line-strong: #6e6e73;
+    --soft: #2a2a2d; --key: #3a3a3c; --accent-soft: #3b3416; --accent-shadow: #b89a00;
+    --g: #3f9e55; --y: #c9a227; --b: #4a4a4d; --on-tile: #fff;
+  }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  body { margin: 0; font-family: system-ui, sans-serif; background: #f3f3f3; color: #222;
+  body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text);
          display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-  header { width: 100%; max-width: 420px; padding: 12px 16px; background: #fff; font-weight: 700;
+  header { width: 100%; max-width: 420px; padding: 12px 16px; background: var(--panel); font-weight: 700;
            display: grid; grid-template-columns: 56px 1fr 56px; align-items: center; text-align: center; }
-  #home { color: #222; text-decoration: none; font-size: .85rem; padding: 4px 0; border: 1px solid #ddd;
+  #home { color: var(--text); text-decoration: none; font-size: .85rem; padding: 4px 0; border: 1px solid var(--line);
           border-radius: 999px; }
-  #home:hover { background: #f3f3f3; }
+  #home:hover, .nav:hover, #theme:hover { background: var(--soft); }
   .mid { grid-column: 2; display: flex; align-items: center; justify-content: space-between; gap: 4px; }
   .nav { width: 32px; height: 32px; flex: none; display: flex; align-items: center; justify-content: center;
-         border-radius: 50%; color: #222; text-decoration: none; font-size: 1.4rem; line-height: 1; }
-  .nav:hover { background: #f3f3f3; }
+         border-radius: 50%; color: var(--text); text-decoration: none; font-size: 1.4rem; line-height: 1; }
   .nav.off { visibility: hidden; }
-  #date { display: block; font-size: .75rem; font-weight: 400; color: #888; margin-top: 2px; }
-  main { width: 100%; max-width: 420px; padding: 16px; background: #fff; }
-  input, button { font: inherit; padding: 10px 14px; border-radius: 8px; border: 1px solid #ccc; }
-  #msg button { background: #ffe14d; border: 0; font-weight: 700; cursor: pointer; }
+  #theme { grid-column: 3; justify-self: end; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line);
+           border-radius: 50%; background: none; font-size: 1.05rem; cursor: pointer; }
+  #date { display: block; font-size: .75rem; font-weight: 400; color: var(--muted); margin-top: 2px; }
+  main { width: 100%; max-width: 420px; padding: 16px; background: var(--panel); }
+  input, button { font: inherit; color: inherit; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--line); }
+  input { background: var(--panel); }
+  a { color: inherit; }
+  #msg button { background: var(--accent); color: #222; border: 0; font-weight: 700; cursor: pointer; }
 
   /* 시작 화면 */
   #entry { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 28px 0 8px; text-align: center; }
@@ -35,16 +58,16 @@
   .logo i:nth-child(odd) { transform: rotate(-4deg); }
   .logo i:nth-child(even) { transform: rotate(3deg); }
   h1 { margin: 4px 0 0; font-size: 1.6rem; letter-spacing: -.02em; }
-  .date-pill { margin: 0; padding: 6px 14px; border-radius: 999px; background: #f3f3f3; font-size: .9rem; font-weight: 600; }
-  .desc { margin: 0; color: #666; font-size: .9rem; line-height: 1.5; }
-  .field { display: flex; flex-direction: column; gap: 6px; font-size: .8rem; font-weight: 600; color: #777; text-align: left; }
-  .field input { font-size: 1.4rem; font-weight: 700; text-align: center; padding: 12px; border: 2px solid #ddd; border-radius: 12px; }
-  .field input:focus { outline: none; border-color: #f5c400; }
-  .start { padding: 14px; border: 0; border-radius: 12px; background: #ffe14d; font-weight: 700; font-size: 1.05rem;
-           cursor: pointer; box-shadow: 0 3px 0 #e0c200; }
-  .start:active { transform: translateY(2px); box-shadow: 0 1px 0 #e0c200; }
-  .legend { list-style: none; margin: 6px 0 0; padding: 14px; border-radius: 12px; background: #fafafa;
-            display: flex; flex-direction: column; gap: 8px; font-size: .85rem; color: #555; text-align: left; }
+  .date-pill { margin: 0; padding: 6px 14px; border-radius: 999px; background: var(--soft); font-size: .9rem; font-weight: 600; }
+  .desc { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.5; }
+  .field { display: flex; flex-direction: column; gap: 6px; font-size: .8rem; font-weight: 600; color: var(--muted); text-align: left; }
+  .field input { font-size: 1.4rem; font-weight: 700; text-align: center; padding: 12px; border: 2px solid var(--line); border-radius: 12px; }
+  .field input:focus { outline: none; border-color: var(--accent-line); }
+  .start { padding: 14px; border: 0; border-radius: 12px; background: var(--accent); color: #222; font-weight: 700; font-size: 1.05rem;
+           cursor: pointer; box-shadow: 0 3px 0 var(--accent-shadow); }
+  .start:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--accent-shadow); }
+  .legend { list-style: none; margin: 6px 0 0; padding: 14px; border-radius: 12px; background: var(--soft);
+            display: flex; flex-direction: column; gap: 8px; font-size: .85rem; color: var(--muted); text-align: left; }
   .legend li { display: flex; align-items: center; gap: 10px; }
   .legend i { width: 28px; height: 28px; flex: none; font-size: .95rem; }
   /* 난이도 선택: 라디오 버튼을 카드처럼 표시 */
@@ -52,39 +75,44 @@
   .seg label { flex: 1; position: relative; }
   .seg input { position: absolute; opacity: 0; }
   .seg span { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 8px;
-              border: 2px solid #ddd; border-radius: 12px; font-weight: 700; cursor: pointer;
+              border: 2px solid var(--line); border-radius: 12px; font-weight: 700; cursor: pointer;
               transition: border-color .15s, background .15s; }
-  .seg small { font-weight: 400; font-size: .75rem; color: #777; }
-  .seg input:checked + span { border-color: #f5c400; background: #fff7cc; }
-  .seg input:focus-visible + span { outline: 2px solid #222; outline-offset: 2px; }
+  .seg small { font-weight: 400; font-size: .75rem; color: var(--muted); }
+  .seg input:checked + span { border-color: var(--accent-line); background: var(--accent-soft); }
+  .seg input:focus-visible + span { outline: 2px solid var(--text); outline-offset: 2px; }
   #grid { display: grid; gap: 6px; margin: 0 auto; }
   .tile { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px;
-          border: 2px solid #ddd; font-size: 1.4rem; font-weight: 700; transition: background .3s; }
-  .tile.filled { border-color: #999; }
-  .g { background: var(--g) !important; border-color: var(--g) !important; }
-  .y { background: var(--y) !important; border-color: var(--y) !important; }
-  .b { background: var(--b) !important; border-color: var(--b) !important; }
+          border: 2px solid var(--line); font-size: 1.4rem; font-weight: 700; transition: background .3s; }
+  .tile.filled { border-color: var(--line-strong); }
+  .g { background: var(--g) !important; border-color: var(--g) !important; color: var(--on-tile); }
+  .y { background: var(--y) !important; border-color: var(--y) !important; color: var(--on-tile); }
+  .b { background: var(--b) !important; border-color: var(--b) !important; color: var(--on-tile); }
   #hintbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin-top: 12px; }
-  #hintBtn { background: #fff; border: 1px solid #ddd; border-radius: 999px; padding: 6px 14px; font-size: .9rem; cursor: pointer; }
+  #hintBtn { background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: .9rem; cursor: pointer; }
   #hintBtn:disabled { opacity: .5; cursor: default; }
-  #hint { font-weight: 600; color: #555; }
+  #hint { font-weight: 600; color: var(--muted); }
   #msg { min-height: 2.5em; margin: 12px 0; text-align: center; font-weight: 600; }
   #kb { width: 100%; max-width: 420px; padding: 10px 6px 20px; display: flex; flex-direction: column; gap: 6px; }
   .row { display: flex; gap: 5px; justify-content: center; }
   .row button { flex: 1; max-width: 40px; height: 50px; padding: 0; border: 0; background: var(--key);
                 font-size: 1.05rem; cursor: pointer; }
   .row button.wide { max-width: 64px; font-size: .9rem; }
-  footer { font-size: .75rem; color: #888; padding: 8px 16px 20px; text-align: center; }
+  footer { font-size: .75rem; color: var(--muted); padding: 8px 16px 20px; text-align: center; }
 </style>
+<script>
+  // 저장된 테마를 그리기 전에 적용해 깜빡임을 막습니다. 저장이 막힌 환경이면 시스템 설정을 따릅니다.
+  try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch {}
+</script>
 </head>
 <body>
-<header hidden>
-  <a id="home" href="?">홈</a>
-  <span class="mid">
+<header>
+  <a id="home" href="?" hidden>홈</a>
+  <span class="mid" id="mid" hidden>
     <a id="prev" class="nav" aria-label="이전 문제">‹</a>
     <span><span id="title">자모 맞추기</span><small id="date"></small></span>
     <a id="next" class="nav" aria-label="다음 문제">›</a>
   </span>
+  <button id="theme" type="button"></button>
 </header>
 
 <main>
@@ -130,6 +158,21 @@ const params = new URLSearchParams(location.search);
 const num = parseInt(params.get('n'), 10);
 const level = params.get('d') === 'hard' ? 'hard' : 'easy'; // 없거나 잘못되면 쉬움
 const $ = id => document.getElementById(id);
+
+// 테마 토글: 지금이 다크면 해, 라이트면 달 아이콘을 보여 주고 누르면 반대로 전환
+const root = document.documentElement;
+const isDark = () => (root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+function paintTheme() {
+  $('theme').textContent = isDark() ? '☀️' : '🌙';
+  $('theme').setAttribute('aria-label', isDark() ? '라이트 모드로 전환' : '다크 모드로 전환');
+}
+$('theme').onclick = e => {
+  root.dataset.theme = isDark() ? 'light' : 'dark';
+  try { localStorage.setItem('theme', root.dataset.theme); } catch {}
+  paintTheme();
+  e.currentTarget.blur();
+};
+paintTheme();
 
 // '2026-11-18' -> '2026년 11월 18일 (수)'
 function fmtDate(d) {
@@ -178,7 +221,7 @@ function start() {
   $('next').href = `?n=${num + 1}&d=${level}`;
   $('prev').classList.toggle('off', num <= 1);
   $('next').classList.toggle('off', num >= 9999);
-  $('game').hidden = $('kb').hidden = document.querySelector('header').hidden = false;
+  $('game').hidden = $('kb').hidden = $('home').hidden = $('mid').hidden = false;
   Object.assign($('grid').style, { gridTemplateColumns: `repeat(${COLS}, 1fr)`, maxWidth: `${COLS * 60}px` });
 
   for (let i = 0; i < ROWS * COLS; i++) {
