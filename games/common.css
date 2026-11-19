@@ -4,7 +4,7 @@
   --bg: #f3f3f3; --panel: #fff; --text: #222; --muted: #777; --line: #ddd; --line-strong: #999;
   --soft: #f3f3f3; --key: #fff; --accent: #ffe14d; --accent-line: #f5c400; --accent-soft: #fff7cc;
   --accent-shadow: #e0c200; --g: #7ddc8c; --y: #ffe082; --b: #c8c8c8; --on-tile: #222; --on-accent: #222;
-  --cover: #c8c8c8; --bad: #ff8a80;
+  --cover: #c8c8c8; --bad: #ff8a80; --key-out: #c8c8c8; --key-out-text: #222;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
@@ -12,6 +12,7 @@
     --bg: #121213; --panel: #1c1c1e; --text: #ececec; --muted: #9a9a9e; --line: #3a3a3c; --line-strong: #6e6e73;
     --soft: #2a2a2d; --key: #3a3a3c; --accent-soft: #3b3416; --accent-shadow: #b89a00;
     --g: #3f9e55; --y: #c9a227; --b: #4a4a4d; --on-tile: #fff; --cover: #4a4a4d; --bad: #b3403a;
+    --key-out: #161618; --key-out-text: #5a5a5e;
   }
 }
 :root[data-theme="dark"] {
@@ -19,6 +20,7 @@
   --bg: #121213; --panel: #1c1c1e; --text: #ececec; --muted: #9a9a9e; --line: #3a3a3c; --line-strong: #6e6e73;
   --soft: #2a2a2d; --key: #3a3a3c; --accent-soft: #3b3416; --accent-shadow: #b89a00;
   --g: #3f9e55; --y: #c9a227; --b: #4a4a4d; --on-tile: #fff; --cover: #4a4a4d; --bad: #b3403a;
+  --key-out: #161618; --key-out-text: #5a5a5e;
 }
 :root[data-theme="darker"] {
   color-scheme: dark;
@@ -26,6 +28,7 @@
   --soft: #2a2d2e; --key: #313131; --accent: #0078d4; --on-accent: #fff; --accent-line: #0078d4;
   --accent-soft: #04395e; --accent-shadow: #005a9e;
   --g: #2f6b3c; --y: #7d6a1f; --b: #262626; --on-tile: #e0e0e0; --cover: #3c3c3c; --bad: #8c2f2f;
+  --key-out: #121212; --key-out-text: #4f4f4f;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -88,6 +91,9 @@ header .mid { grid-column: 2; display: flex; align-items: center; justify-conten
 #entry h1 { margin: 4px 0 0; font-size: 1.6rem; letter-spacing: -.02em; }
 .date-pill { margin: 0; padding: 6px 14px; border-radius: 999px; background: var(--soft); font-size: .9rem; font-weight: 600; }
 .desc { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.5; }
+.solved { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; font-size: .85rem; font-weight: 600; color: var(--muted); }
+.solved a { display: inline-block; min-width: 1.8em; margin-left: 2px; padding: 1px 6px; border-radius: 999px;
+            background: var(--g); color: var(--on-tile); text-decoration: none; }
 .field { display: flex; flex-direction: column; gap: 6px; font-size: .8rem; font-weight: 600; color: var(--muted); text-align: left; }
 .field input { font: inherit; font-size: 1.4rem; font-weight: 700; text-align: center; padding: 12px; color: var(--text);
                background: var(--panel); border: 2px solid var(--line); border-radius: 12px; }
@@ -105,5 +111,7 @@ header .mid { grid-column: 2; display: flex; align-items: center; justify-conten
 .kb button { flex: 1; max-width: 64px; height: 50px; padding: 0; border: 0; border-radius: 8px; background: var(--key);
              font-size: 1.1rem; box-shadow: inset 0 0 0 1px var(--line); }
 .kb button:disabled { opacity: .35; cursor: default; }
+/* 제외된 키: 아직 안 쓴 키보다 확실히 어둡게 */
+.kb button.b { background: var(--key-out) !important; color: var(--key-out-text) !important; box-shadow: none; }
 .kb .wide { max-width: 100px; font-size: .95rem; }
 footer { font-size: .75rem; color: var(--muted); padding: 8px 16px 20px; text-align: center; }

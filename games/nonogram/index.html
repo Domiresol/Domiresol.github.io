@@ -48,7 +48,7 @@
 daily({
   id: 'nonogram', name: '노노그램', desc: '숫자 힌트로 칠할 칸을 찾아내는 네모 로직 퍼즐이에요.',
   levels: { easy: ['쉬움', '5×5'], normal: ['보통', '10×10'], hard: ['어려움', '15×15'] },
-  run(r, level, finish) {
+  run(r, level, finish, rec) {
     const { n, sol, rows, cols } = nonoGen(r, level);
     const s = Array(n * n).fill(0); // 0 빈칸, 1 칠함, 2 × 표시
     const clock = timer($('time'));
@@ -105,6 +105,7 @@ daily({
       e.currentTarget.setAttribute('aria-pressed', e.currentTarget.getAttribute('aria-pressed') !== 'true');
       e.currentTarget.blur();
     };
+    if (rec) { sol.forEach((v, i) => { s[i] = v ? 1 : 2; }); done = true; } // 오늘 푼 문제: 정답 그림 표시
     draw();
   },
 });

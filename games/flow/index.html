@@ -46,7 +46,7 @@ const COLORS = ['#e5484d', '#3b82f6', '#22a35a', '#eab308', '#f97316', '#8b5cf6'
 daily({
   id: 'flow', name: '색 점 잇기', desc: '같은 색 점끼리 선으로 이어 판을 가득 채워요.',
   levels: { easy: ['쉬움', '5×5 · 5색'], normal: ['보통', '7×7 · 7색'], hard: ['어려움', '9×9 · 10색'] },
-  run(r, level, finish) {
+  run(r, level, finish, rec) {
     const { n, ends } = flowGen(r, level);
     const endOf = {}; // 칸 → 그 칸이 끝 점인 색 번호
     ends.forEach(([a, b], c) => { endOf[a] = endOf[b] = c; });
@@ -108,8 +108,10 @@ daily({
     $('board').onpointerup = $('board').onpointercancel = () => {
       if (active < 0) return;
       active = -1;
-      if (flowSolved(n, ends, paths)) { done = true; clock.stop(); finish(clock.text); }
+      // 답이 여러 개일 수 있어 내가 그린 선을 그대로 저장
+      if (flowSolved(n, ends, paths)) { done = true; clock.stop(); finish(clock.text, { paths }); }
     };
+    if (rec?.paths) { rec.paths.forEach((p, c) => { paths[c] = p; }); done = true; } // 오늘 푼 문제
     draw();
   },
 });

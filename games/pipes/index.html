@@ -44,8 +44,8 @@
 daily({
   id: 'pipes', name: '파이프 연결', desc: '파이프 조각을 돌려 수원에서 모든 칸으로 물길을 이어요.',
   levels: { easy: ['쉬움', '5×5'], normal: ['보통', '7×7'], hard: ['어려움', '9×9'] },
-  run(r, level, finish) {
-    const { n, src, tiles } = pipesGen(r, level);
+  run(r, level, finish, rec) {
+    const { n, src, tiles, answer } = pipesGen(r, level);
     const clock = timer($('time'));
     let moves = 0, done = false;
     $('board').style.gridTemplateColumns = `repeat(${n}, 1fr)`;
@@ -71,7 +71,7 @@ daily({
       moves++;
       clock.start();
       $('moves').textContent = moves;
-      if (draw()) { done = true; clock.stop(); finish(`${moves}번 회전 · ${clock.text}`); }
+      if (draw()) { done = true; clock.stop(); finish(`${moves}번 회전 · ${clock.text}`, { moves }); }
     }
 
     $('board').onclick = e => { const c = e.target.closest('[data-i]'); if (c) turn(+c.dataset.i, 1); };
@@ -81,6 +81,7 @@ daily({
       e.preventDefault();
       turn(+c.dataset.i, 3);
     };
+    if (rec) { answer.forEach((m, i) => { tiles[i] = m; }); done = true; $('moves').textContent = rec.moves ?? 0; } // 오늘 푼 문제
     draw();
   },
 });

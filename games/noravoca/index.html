@@ -11,20 +11,21 @@
     --bg: #f3f3f3; --panel: #fff; --text: #222; --muted: #777; --line: #ddd; --line-strong: #999;
     --soft: #f3f3f3; --key: #fff; --accent: #ffe14d; --accent-line: #f5c400; --accent-soft: #fff7cc;
     --accent-shadow: #e0c200; --g: #7ddc8c; --y: #ffe082; --b: #c8c8c8; --on-tile: #222; --on-accent: #222;
+    --key-out: #c8c8c8; --key-out-text: #222;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
       color-scheme: dark;
       --bg: #121213; --panel: #1c1c1e; --text: #ececec; --muted: #9a9a9e; --line: #3a3a3c; --line-strong: #6e6e73;
       --soft: #2a2a2d; --key: #3a3a3c; --accent-soft: #3b3416; --accent-shadow: #b89a00;
-      --g: #3f9e55; --y: #c9a227; --b: #4a4a4d; --on-tile: #fff;
+      --g: #3f9e55; --y: #c9a227; --b: #4a4a4d; --on-tile: #fff; --key-out: #161618; --key-out-text: #5a5a5e;
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
     --bg: #121213; --panel: #1c1c1e; --text: #ececec; --muted: #9a9a9e; --line: #3a3a3c; --line-strong: #6e6e73;
     --soft: #2a2a2d; --key: #3a3a3c; --accent-soft: #3b3416; --accent-shadow: #b89a00;
-    --g: #3f9e55; --y: #c9a227; --b: #4a4a4d; --on-tile: #fff;
+    --g: #3f9e55; --y: #c9a227; --b: #4a4a4d; --on-tile: #fff; --key-out: #161618; --key-out-text: #5a5a5e;
   }
   /* 더 다크: VS Code 기본 다크(Dark Modern) 톤. 강조는 파란색, 판정 색은 채도를 낮춤 */
   :root[data-theme="darker"] {
@@ -32,7 +33,7 @@
     --bg: #181818; --panel: #1f1f1f; --text: #cccccc; --muted: #9d9d9d; --line: #2b2b2b; --line-strong: #616161;
     --soft: #2a2d2e; --key: #313131; --accent: #0078d4; --on-accent: #fff; --accent-line: #0078d4;
     --accent-soft: #04395e; --accent-shadow: #005a9e;
-    --g: #2f6b3c; --y: #7d6a1f; --b: #262626; --on-tile: #e0e0e0;
+    --g: #2f6b3c; --y: #7d6a1f; --b: #262626; --on-tile: #e0e0e0; --key-out: #121212; --key-out-text: #4f4f4f;
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
@@ -105,6 +106,11 @@
   .row button { flex: 1; max-width: 40px; height: 50px; padding: 0; border: 0; background: var(--key);
                 font-size: 1.05rem; cursor: pointer; }
   .row button.wide { max-width: 64px; font-size: .9rem; }
+  /* 정답에 없는 자모 키: 아직 안 쓴 키보다 확실히 어둡게 (다크 테마에서 구분이 잘 되도록) */
+  .row button.b { background: var(--key-out) !important; color: var(--key-out-text) !important; }
+  .solved { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; font-size: .85rem; font-weight: 600; color: var(--muted); }
+  .solved a { display: inline-block; min-width: 1.8em; margin-left: 2px; padding: 1px 6px; border-radius: 999px;
+              background: var(--g); color: var(--on-tile); text-decoration: none; }
   footer { font-size: .75rem; color: var(--muted); padding: 8px 16px 20px; text-align: center; }
 </style>
 <script>
@@ -129,6 +135,7 @@
     <h1>자모 맞추기</h1>
     <p class="date-pill" id="today"></p>
     <p class="desc">단어를 자모로 풀어 6번 안에 맞혀 보세요.<br>같은 날 같은 번호·난이도면 모두 같은 문제예요.</p>
+    <p class="solved" id="solved" hidden></p>
     <label class="field">문제 번호
       <input name="n" type="number" inputmode="numeric" min="1" max="9999" required placeholder="1 ~ 9999" autofocus>
     </label>
@@ -193,8 +200,28 @@ function fmtDate(d) {
   return `${y}년 ${m}월 ${day}일 (${'일월화수목금토'[new Date(Date.UTC(y, m - 1, day)).getUTCDay()]})`;
 }
 
+// 오늘 푼 문제 기록: localStorage 'daily:noravoca:<날짜>:<번호>:<난이도>' = { rows: 제출한 자모, hints: 힌트 수, done }
+// 미니 퍼즐(games/common.js)과 같은 키 방식이고, 날짜가 지난 기록은 지웁니다. 저장이 막힌 환경이면 기록 없이 동작합니다.
+const PRE = 'daily:noravoca:', TODAY = `${PRE}${date}:`;
+const saved = {}; // '번호:난이도' -> 기록
+try {
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (!k.startsWith(PRE)) continue;
+    if (!k.startsWith(TODAY)) localStorage.removeItem(k);
+    else saved[k.slice(TODAY.length)] = JSON.parse(localStorage.getItem(k));
+  }
+} catch {}
+const save = v => { try { localStorage.setItem(`${TODAY}${num}:${level}`, JSON.stringify(v)); } catch {} };
+
 if (!(num >= 1)) {
   $('today').textContent = fmtDate(date);
+  // 오늘 끝낸 문제를 난이도별로 바로 열 수 있게 표시
+  const done = Object.keys(LEVELS).map(d => {
+    const nums = Object.keys(saved).filter(k => k.endsWith(`:${d}`) && saved[k]?.done).map(k => parseInt(k, 10)).sort((a, b) => a - b);
+    return nums.length ? `<span>${LEVELS[d].name} ${nums.map(n => `<a href="?n=${n}&d=${d}">${n}</a>`).join(' ')}</span>` : '';
+  }).join('');
+  if (done) { $('solved').innerHTML = `오늘 푼 문제 ✓ ${done}`; $('solved').hidden = false; }
   $('entry').hidden = false;
 } else {
   start();
@@ -212,7 +239,9 @@ function start() {
   const keys = {};
   const rank = { b: 1, y: 2, g: 3 };
   const history = [];
+  const guesses = []; // 제출한 자모 문자열 (기록 저장용)
   let row = 0, cur = [], done = false;
+  const persist = () => save({ rows: guesses, hints: hintsUsed, done });
 
   // 힌트: 누를 때마다 음절 수, 초성 순으로 하나씩 공개
   const SYL_CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
@@ -225,6 +254,7 @@ function start() {
     hintsUsed++;
     $('hint').textContent = HINTS.slice(0, hintsUsed).join(' · ');
     $('hintBtn').disabled = hintsUsed === HINTS.length;
+    persist();
   };
 
   $('title').textContent = `${num}번 · ${LEVELS[level].name} · 자모 ${COLS}개`;
@@ -304,10 +334,12 @@ function start() {
       if (!prev || rank[c] > rank[prev]) { key.classList.remove('b', 'y', 'g'); key.classList.add(c); }
     });
     history.push(res);
+    guesses.push(cur.join(''));
     row++;
     const win = res.every(c => c === 'g');
     if (win || row === ROWS) {
       done = true;
+      $('title').textContent += ' ✓';
       $('hintBtn').disabled = true;
       $('msg').innerHTML = '';
       $('msg').append(
@@ -323,6 +355,14 @@ function start() {
         }));
     }
     cur = [];
+    persist();
+  }
+
+  // 오늘 이 문제를 이미 하고 있었다면 힌트와 제출한 줄을 그대로 되살립니다.
+  const rec = saved[`${num}:${level}`];
+  if (rec) {
+    for (let i = 0; i < Math.min(rec.hints || 0, HINTS.length); i++) $('hintBtn').click();
+    (rec.rows || []).forEach(r => { if (!done) { cur = [...r]; submit(); } });
   }
 
   // 정답 글자는 빼고 색만 공유

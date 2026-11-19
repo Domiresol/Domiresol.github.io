@@ -53,7 +53,7 @@
 daily({
   id: 'sudoku', name: '스도쿠', desc: '1~9를 겹치지 않게 채우는 숫자 퍼즐이에요.',
   levels: { easy: ['쉬움', '숫자 40개'], normal: ['보통', '숫자 32개'], hard: ['어려움', '숫자 26개 안팎'] },
-  run(r, level, finish) {
+  run(r, level, finish, rec) {
     const { puzzle, solution } = sudokuGen(r, level);
     const val = puzzle.slice(), memo = puzzle.map(() => new Set());
     // 칸마다 같은 가로줄·세로줄·3×3 칸에 있는 다른 칸 목록
@@ -125,6 +125,7 @@ daily({
       else if (['Backspace', 'Delete', '0'].includes(e.key)) input('⌫');
       else if (e.key === 'm' || e.key === 'M') $('memoBtn').click();
     });
+    if (rec) { solution.forEach((v, i) => { val[i] = v; }); done = true; sel = -1; } // 오늘 푼 문제: 정답판 표시
     draw();
   },
 });
